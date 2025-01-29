@@ -1,0 +1,37 @@
+#page-header {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    background-color: #2B2B2B;
+    position: relative;
+}
+
+.logo {
+    height: 50px;
+    width: 55px;
+    grid-column: 1;
+    grid-row: 1;
+    position: absolute;
+    top: 15%;
+    left: 2%;
+}
+
+#title {
+    grid-column: 2;
+    grid-row: 1;
+    color: #FFFFFF;
+    font-family: 'Inter';
+    font-size: 30px;
+    margin: 20px 0px;
+}
+
+#login-button {
+    height: 50%;
+    grid-column: 10;
+    border-radius: 12px;
+    font-family: 'Inter';
+    font-size: 16px;
+    padding-left: 20px;
+    padding-right: 20px;
+    position: absolute;
+    top: 25%;
+}
