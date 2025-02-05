@@ -1,4 +1,4 @@
 .DS_Store
-./frontend/node_modules
-./backend/__pycache__
-./learnblocks/__pycache__
+frontend/node_modules
+backend/__pycache__
+learnblocks/__pycache__
