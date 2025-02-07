@@ -38,6 +38,7 @@ export default [
     rules: {
       // TODO: once its resolved, reactHooks can be configured like the rest of the plugins
       ...reactHooks.configs.recommended.rules,
+      'react/prop-types': 'off'
       }
   },
 ];
