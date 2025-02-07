@@ -17,7 +17,7 @@ export default function Nav() {
           className="mr-3 h-6 sm:h-9"
           alt="Learn Blocks Logo"
         />
-        <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
+        <span className="text-xl self-center whitespace-nowrap font-semibold dark:text-white">
           LearnBlocks
         </span>
       </NavbarBrand>

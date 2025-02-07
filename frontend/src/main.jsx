@@ -1,6 +1,6 @@
 import ReactDOM from 'react-dom/client';
-import LandingPage from './pages/Landing.tsx';
-import Layout from './components/Layout.tsx';
+import LandingPage from './pages/Landing.jsx';
+import Layout from './components/Layout.jsx';
 
 import './index.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
