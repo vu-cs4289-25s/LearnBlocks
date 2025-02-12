@@ -22,6 +22,11 @@ from learnblocks import views
 router = routers.DefaultRouter()
 router.register(r'learnblocks', views.LearnBlocksView, 'learnblocks')
 
+router.register(r'user',views.UserViewSet,basename='user')
+router.register(r'badge',views.BadgeViewSet,basename='badge')
+router.register(r'activity',views.ActivityViewSet,basename='activity')
+router.register(r'class',views.ClassViewSet,basename='class')
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
