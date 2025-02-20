@@ -1,10 +1,10 @@
 import './index.css';
 import ReactDOM from 'react-dom/client';
-import LandingPage from './pages/Landing.jsx';
-import Layout from './components/Layout.jsx';
+import LandingPage from '$pages/Landing.jsx';
+import Layout from '$lib/components/Layout.jsx';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import RegistrationPage from './pages/RegisterPage.jsx';
-import LoginPage from './pages/LoginPage.jsx';
+import RegistrationPage from '$pages/RegisterPage.jsx';
+import LoginPage from '$pages/LoginPage';
 
 const root = document.getElementById('root');
 

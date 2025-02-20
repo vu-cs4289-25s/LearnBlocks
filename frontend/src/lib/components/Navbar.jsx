@@ -13,11 +13,11 @@ export default function Nav() {
     <Navbar fluid className="dark:bg-gray-800">
       <NavbarBrand as={Link} href={import.meta.env.BASE_URL}>
         <img
-          src="learnblocks.svg"
+          src="/learnblocks.svg"
           className="mr-3 h-6 sm:h-9"
           alt="Learn Blocks Logo"
         />
-        <span className="text-xl self-center whitespace-nowrap font-semibold dark:text-white">
+        <span className="text-xl self-center font-semibold">
           LearnBlocks
         </span>
       </NavbarBrand>

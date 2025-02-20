@@ -1,5 +1,5 @@
 import { Card } from 'flowbite-react';
-import { RegisterForm } from '../components/RegisterForm';
+import { RegisterForm } from '$lib/components/RegisterForm';
 
 export default function RegistrationPage() {
   return (

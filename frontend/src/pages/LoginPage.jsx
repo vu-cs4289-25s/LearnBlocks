@@ -1,5 +1,5 @@
 import { Card } from 'flowbite-react';
-import { LoginForm } from '../components/LoginForm';
+import { LoginForm } from '$lib/components/LoginForm';
 
 export default function LoginPage() {
   return (
