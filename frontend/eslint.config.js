@@ -1,5 +1,6 @@
 import js from "@eslint/js";
 import jsdoc from "eslint-plugin-jsdoc";
+import globals from "globals";
 
 import react from "eslint-plugin-react";
 
@@ -9,8 +10,8 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 
 import tailwindcss from "eslint-plugin-tailwindcss";
-
 import prettierConfig from "eslint-config-prettier";
+
 
 export default [
   // These are the recommended configs for each plugin
@@ -25,6 +26,9 @@ export default [
     files: ["**/*.{jsx,jsx}"],
     ignores: ["**/*.config.js"],
     languageOptions: {
+      globals:{
+        ...globals.browser,
+      },
       parserOptions: {
         ecmaFeatures: {
           jsx: true,
@@ -38,8 +42,11 @@ export default [
     rules: {
       // TODO: once its resolved, reactHooks can be configured like the rest of the plugins
       ...reactHooks.configs.recommended.rules,
-      'react/prop-types': 'off'
+      'react/prop-types': 'off',
+      'tailwindcss/no-custom-classname': ['off', {'config': './tailwind.config.js'}],
+      'tailwindcss/classnames-order': 'off',
       }
+
   },
 ];
 

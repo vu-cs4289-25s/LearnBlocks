@@ -10,7 +10,7 @@ import {
 
 export default function Nav() {
   return (
-    <Navbar fluid className="dark:bg-nb-gray-400">
+    <Navbar fluid className="dark:bg-gray-800">
       <NavbarBrand as={Link} href={import.meta.env.BASE_URL}>
         <img
           src="learnblocks.svg"
@@ -23,8 +23,8 @@ export default function Nav() {
       </NavbarBrand>
       <NavbarToggle />
       <NavbarCollapse>
-        <NavbarLink href="##">Register</NavbarLink>
-        <NavbarLink href="#">Login</NavbarLink>
+        <NavbarLink href="/register">Register</NavbarLink>
+        <NavbarLink href="/login">Login</NavbarLink>
       </NavbarCollapse>
     </Navbar>
   );
