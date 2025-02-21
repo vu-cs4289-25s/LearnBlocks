@@ -1,4 +1,3 @@
-import { Button } from 'flowbite-react';
 import Nav from './Navbar';
 
 export default function Layout({ children }){
