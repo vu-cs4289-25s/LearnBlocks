@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { BlocklyWorkspace } from 'react-blockly';
 import { Button, Dropdown } from 'flowbite-react';
-import { btop } from '../include/transpile.js';
-import { TOOLBOX } from '../include/blocklyToolbox.js';
+import { btop } from '$lib/utils/transpile.js';
+import { TOOLBOX } from '$lib/utils/blocklyToolbox.js';
 
 // TODO - create theme
 const WORKSPACE_CONFIG = {

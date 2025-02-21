@@ -1,6 +1,6 @@
 import { React, Suspense, lazy } from 'react';
 
-const CodeEditor = lazy(() => import("../components/CodeEditor"));
+const CodeEditor = lazy(() => import("$lib/components/CodeEditor"));
 
 export default function Playground() {
     // TODO - add console
