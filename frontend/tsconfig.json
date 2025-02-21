@@ -1,7 +1,17 @@
 {
   "compilerOptions": {
     "baseUrl": "./",
-    "paths": {"$lib/*": ["./src/lib/*"], "$pages/*":[ "./src/pages/*"], "$assets/*": ["./src/assets/*"]},
+    "paths": {
+      "$lib/*": [
+        "./src/lib/*"
+      ],
+      "$pages/*": [
+        "./src/pages/*"
+      ],
+      "$assets/*": [
+        "./src/assets/*"
+      ]
+    },
     "allowJs": true,
     "target": "ES2020",
     "useDefineForClassFields": true,
@@ -16,7 +26,7 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
+    "isolatedModules": false,
     "noEmit": true,
     "jsx": "react-jsx",
     /* Linting */
@@ -28,4 +38,9 @@
   "include": [
     "src"
   ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }

@@ -70,12 +70,13 @@ export function RegisterForm() {
           I agree with the&nbsp;
           <Link
             href="/terms"
-            className="text-cyan-600 hover:underline dark:text-cyan-500"
+            className="hover:underline"
           >
             terms and conditions
           </Link>
         </Label>
       </div>
+
       <Button type="submit">Register new account</Button>
     </form>
   );

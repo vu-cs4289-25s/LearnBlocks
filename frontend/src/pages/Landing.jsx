@@ -2,7 +2,7 @@ import { Button } from 'flowbite-react';
 
 export default function LandingPage() {
   return (
-    <main className="dark:bg-nb-gray-300 flex flex-1 flex-col items-center justify-center">
+    <main className="flex flex-1 flex-col items-center justify-center dark:bg-gray-900">
       <img
         src="learnblocks.svg"
         className="h-50 pb-10"
