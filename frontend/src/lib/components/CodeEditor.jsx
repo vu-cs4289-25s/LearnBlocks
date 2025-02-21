@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { BlocklyWorkspace } from 'react-blockly';
-import { Button, Dropdown } from 'flowbite-react';
 import { btop } from '$lib/utils/transpile.js';
 import { TOOLBOX } from '$lib/utils/blocklyToolbox.js';
 
@@ -67,10 +66,10 @@ export default function CodeEditor() {
               <PythonEditor state={editorState} />
             }
             <div className='flex space-x-3'>
-                <Button color='dark' size='sm' onClick={changeLanguage}>
+                <button color='dark' size='sm' onClick={changeLanguage}>
                     {editorMode === 'blockly' ? 'switch to python' : 'switch to blockly'}
-                </Button>
-                <Button color='dark' size='sm'>Run Code</Button>
+                </button>
+                <button color='dark' size='sm'>Run Code</button>
             </div>
         </div>
     );
