@@ -9,7 +9,6 @@ import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 
-import tailwindcss from 'eslint-plugin-tailwindcss';
 import prettierConfig from 'eslint-config-prettier';
 
 export default [
@@ -20,7 +19,6 @@ export default [
   react.configs.flat.recommended,
   react.configs.flat['jsx-runtime'], // for react > v17
   reactRefresh.configs.recommended,
-  ...tailwindcss.configs['flat/recommended'],
   {
     files: ['**/*.{jsx,js,mjs}'],
     // ignores: ['**/*.config.js'],
@@ -42,11 +40,6 @@ export default [
       // TODO: once its resolved, reactHooks can be configured like the rest of the plugins
       ...reactHooks.configs.recommended.rules,
       'react/prop-types': 'off',
-      'tailwindcss/no-custom-classname': [
-        'off',
-        { config: './tailwind.config.js' },
-      ],
-      'tailwindcss/classnames-order': 'off',
       'no-unused-vars': 'warn'
     },
   },
