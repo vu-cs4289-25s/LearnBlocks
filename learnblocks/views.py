@@ -101,6 +101,9 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='add_class')
     def add_class(self, request, pk=None):
         return Response(mock_rooster)
+    @action(detail=True, methods=['get'], url_path='progress')
+    def progress(self, request, pk=None):
+        return Response(progress_list)
     
 class BadgeViewSet(viewsets.ModelViewSet):
     serializer_class=LearnBlocksSerializer
@@ -125,5 +128,80 @@ class ClassViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         return Response(mock_class)
     def destroy(self, request, *args, **kwargs):
+        return Response()
+    @action(detail=True, methods=['get'], url_path='assignment')
+    def assignment(self, request, pk=None):
+        return Response(assignment_list)
+
+class CourseViewSet(viewsets.ModelViewSet):
+    serializer_class=DynamicFieldsSerializer
+    def get_queryset(self):
+        return mock_course_list["courses"]
+    def retrieve(self, request, *args, **kwargs):
+        return Response(mock_course)
+    def create(self, request, *args, **kwargs):
+        return Response(mock_course)
+    def update(self, request, *args, **kwargs):
+        return Response(mock_course)
+    def destroy(self, request, *args, **kwargs):
+        return Response()
+    @action(detail=True, methods=['get'], url_path='module')
+    def module(self, request, pk=None):
+        return Response(module_list)
+    @action(detail=True, methods=['get'], url_path='assignment')
+    def assignment(self, request, pk=None):
+        return Response(assignment_list)
+
+class ModuleViewSet(viewsets.ModelViewSet):
+    serializer_class=DynamicFieldsSerializer
+    def get_queryset(self):
+        return modules
+    def retrieve(self, request, *args, **kwargs):
+        return Response(module_data_1)
+    def create(self, request, *args, **kwargs):
+        return Response(module_data_1)
+    def update(self, request, *args, **kwargs):
+        return Response(module_data_1)
+    def destroy(self, request, *args, **kwargs):
+        return Response()    
+    @action(detail=True, methods=['get'], url_path='progress')
+    def progress(self, request, pk=None):
+        return Response(progress_list)
+
+    
+class ProgressViewSet(viewsets.ModelViewSet):
+    serializer_class=DynamicFieldsSerializer
+    def get_queryset(self):
+        return progresses
+    def retrieve(self, request, *args, **kwargs):
+        return Response(progress_data_1)
+    def create(self, request, *args, **kwargs):
+        return Response(progress_data_1)
+    def update(self, request, *args, **kwargs):
+        return Response(progress_data_1)
+    def destroy(self, request, *args, **kwargs):
+        return Response() 
+
+class AssignmentViewSet(viewsets.ModelViewSet):
+    serializer_class=DynamicFieldsSerializer
+    def get_queryset(self):
+        return assignments
+    def retrieve(self, request, *args, **kwargs):
+        return Response(assignment_data_1)
+    def create(self, request, *args, **kwargs):
+        return Response(assignment_data_1)
+    def update(self, request, *args, **kwargs):
+        return Response(assignment_data_1)
+    def destroy(self, request, *args, **kwargs):
+        return Response()     
+    
+class SessionViewSet(viewsets.ModelViewSet):
+    serializer_class=DynamicFieldsSerializer
+    def create(self, request, *args, **kwargs):
+        request.session['user'] = mock_session
+        return Response(mock_session)
+    @action(detail=False, methods=['delete'], url_path='reset')
+    def reset_session(self, request, *args, **kwargs):
+        request.session.flush()
         return Response()
     

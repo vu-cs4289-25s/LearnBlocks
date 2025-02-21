@@ -26,7 +26,11 @@ router.register(r'user',views.UserViewSet,basename='user')
 router.register(r'badge',views.BadgeViewSet,basename='badge')
 router.register(r'activity',views.ActivityViewSet,basename='activity')
 router.register(r'class',views.ClassViewSet,basename='class')
-
+router.register(r'course',views.CourseViewSet,basename='course')
+router.register(r'module',views.ModuleViewSet,basename='module')
+router.register(r'progress',views.ProgressViewSet,basename='progress')
+router.register(r'assignment',views.AssignmentViewSet,basename='assignment')
+router.register(r'session',views.SessionViewSet,basename='session')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
