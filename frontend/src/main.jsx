@@ -1,5 +1,6 @@
 import './index.css';
 import ReactDOM from 'react-dom/client';
+import Playground from '$pages/Playground.jsx';
 import LandingPage from '$pages/Landing.jsx';
 import Layout from '$lib/components/Layout.jsx';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -24,6 +25,7 @@ ReactDOM.createRoot(root).render(
           <Route path="/login" element={<LoginPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/students/home/:userId" element={<StudentHomePage />} />
+          <Route path="/playground" element={<Playground />} />
         </Route>
       </Routes>
     </Layout>
