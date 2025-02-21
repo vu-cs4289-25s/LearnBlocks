@@ -26,3 +26,7 @@
   --color-gray-900: #171717;
 }
 
+ /* WARN: This fixes react blocklys scrollbar problem*/
+.blocklyFlyoutScrollbar[display="none"] {
+    display: none;
+}
