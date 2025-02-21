@@ -15,14 +15,16 @@ if (!root) {
 }
 
 ReactDOM.createRoot(root).render(
-  <BrowserRouter>
+  <BrowserRouter >
     <Layout>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/register" element={<RegistrationPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/terms" element={<TermsPage />} />
-        <Route path="/students/home/:userId" element={<StudentHomePage />} />
+        <Route path="/">
+          <Route index element={<LandingPage />} />
+          <Route path="/register" element={<RegistrationPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/students/home/:userId" element={<StudentHomePage />} />
+        </Route>
       </Routes>
     </Layout>
   </BrowserRouter>,

@@ -1,4 +1,3 @@
-import { Card } from 'flowbite-react';
 import { RegisterForm } from '$lib/components/RegisterForm';
 
 export default function RegistrationPage() {
@@ -14,9 +13,9 @@ export default function RegistrationPage() {
           LearnBlox
         </h1>
       </figure>
-      <Card>
+      <div>
         <RegisterForm />
-      </Card>
+      </div>
     </main>
   );
 }

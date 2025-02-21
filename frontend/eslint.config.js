@@ -22,7 +22,7 @@ export default [
   reactRefresh.configs.recommended,
   ...tailwindcss.configs['flat/recommended'],
   {
-    files: ['**/*.{jsx,js}'],
+    files: ['**/*.{jsx,js,mjs}'],
     // ignores: ['**/*.config.js'],
     languageOptions: {
       globals: {

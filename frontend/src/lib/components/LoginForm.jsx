@@ -1,5 +1,3 @@
-import { Button, Label, TextInput } from 'flowbite-react';
-import { Github } from 'flowbite-react-icons/solid';
 import { useNavigate } from 'react-router-dom';
 
 /**
@@ -15,37 +13,24 @@ export function LoginForm() {
    */
   const onGithubLogin = (e) => {
     e.preventDefault();
-    navigate('/students/home/' + userId)
+    navigate('/students/home/' + userId);
   };
 
   return (
     <form className="flex w-96 flex-col gap-4">
       <section>
-        <Label htmlFor="username" value="Your username" />
-        <TextInput
-          id="username"
-          type="text"
-          placeholder="username"
-          required
-          shadow
-        />
+        <div htmlFor="username" value="Your username" />
+        <div id="username" type="text" placeholder="username" required />
       </section>
       <section>
-        <Label htmlFor="password2" value="Your password" />
-        <TextInput id="password2" type="password" required shadow />
+        <div htmlFor="password2" value="Your password" />
+        <div id="password2" type="password" required />
       </section>
       <section className="flex flex-1 flex-col gap-2 align-middle">
-        <Button pill type="submit">
-          Login
-        </Button>
-        <Button
-          pill
-          className="w-20 self-center"
-          color="dark"
-          onClick={onGithubLogin}
-        >
-          <Github />
-        </Button>
+        <div type="submit">Login</div>
+        <div className="w-20 self-center" color="dark" onClick={onGithubLogin}>
+          <div />
+        </div>
       </section>
     </form>
   );

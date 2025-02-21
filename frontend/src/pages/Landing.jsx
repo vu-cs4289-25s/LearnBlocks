@@ -1,4 +1,3 @@
-import { Button } from 'flowbite-react';
 
 export default function LandingPage() {
   return (
@@ -14,9 +13,9 @@ export default function LandingPage() {
       <h2 className="p-2 text-center text-xl font-bold dark:text-white">
         An Interactive approach to learning code
       </h2>
-      <Button pill color="yellow">
+      <div >
         Get Started
-      </Button>
+      </div>
     </main>
   );
 }

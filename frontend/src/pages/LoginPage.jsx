@@ -1,10 +1,9 @@
-import { Card } from 'flowbite-react';
 import { LoginForm } from '$lib/components/LoginForm';
 
 export default function LoginPage() {
   return (
     <main className="flex flex-1 flex-col items-center justify-evenly dark:bg-gray-900">
-      <Card className="flex flex-col">
+      <div className="flex flex-col">
         <figure className="flex flex-col">
           <img
             src="learnblocks.svg"
@@ -16,7 +15,7 @@ export default function LoginPage() {
           </h1>
         </figure>
         <LoginForm />
-      </Card>
+      </div>
     </main>
   );
 }
