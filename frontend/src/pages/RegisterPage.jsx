@@ -2,7 +2,7 @@ import { RegisterForm } from '$lib/components/RegisterForm';
 
 export default function RegistrationPage() {
   return (
-    <main className="flex flex-1 flex-row items-center justify-evenly dark:bg-gray-900">
+    <main className="flex flex-1 flex-row items-center justify-evenly dark:bg-zinc-900">
       <figure className="flex flex-col">
         <img
           src="learnblocks.svg"

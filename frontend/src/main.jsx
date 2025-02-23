@@ -33,7 +33,7 @@ ReactDOM.createRoot(root).render(
             <Route path="courses/:userId" element={<StudentHomePage />} />
           </Route>
           <Route path="t/">
-            <Route path="home/:userId" element={<StudentHomePage />} />
+            <Route path="home" element={<StudentHomePage />} />
             <Route path="classes" element={<StudentHomePage />} />
             <Route path="courses" element={<StudentHomePage />} />
           </Route>

@@ -1,7 +1,7 @@
 
 export default function TermsPage() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-evenly dark:bg-gray-900">
+    <main className="flex flex-1 flex-col items-center justify-evenly dark:bg-zinc-900">
       <div className = 'max-w-md my-10'>
         <h1 className="text-center text-4xl font-bold">
           Terms And Conditions
