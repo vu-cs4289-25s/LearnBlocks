@@ -28,9 +28,9 @@ export default function Nav({ navLinkData }) {
       </div>
 
       <ul
-        className={`flex flex-1 flex-col gap-2 bg-zinc-800 px-2 py-1 text-center max-md:absolute max-md:top-0 max-md:left-0 max-md:h-screen max-md:w-screen md:max-h-fit md:flex-1/2 md:flex-row md:justify-end md:text-xs ${closed ? 'max-md:hidden' : ''} `}
+        className={`flex flex-1 flex-col gap-2 bg-zinc-800 px-2 py-1 text-center max-md:absolute max-md:top-0 max-md:left-0 max-md:h-screen max-md:w-screen md:max-h-fit md:flex-1/2 md:flex-row md:justify-end md:text-xs z-10 ${closed ? 'max-md:hidden' : ''} `}
       >
-        <li className="flex flex-row items-center justify-between md:hidden">
+        <li className="flex flex-row items-center justify-between md:hidden ">
           <Link src="/learnblocks.svg" to="/" onClick={() => setClosed(true)}>
             <img
               src="/learnblocks.svg"
@@ -42,6 +42,10 @@ export default function Nav({ navLinkData }) {
             <XMarkIcon className="h-8 cursor-pointer" alt="close navigation " />
           </Button>
         </li>
+        <Link onClick={() => setClosed(true)} to="/catalog">
+          catalog
+        </Link>
+        <hr className="text-zinc-600" />
         <Link onClick={() => setClosed(true)} to="/register">
           register
         </Link>

@@ -1,63 +1,116 @@
+import { Field, Label, Input, Checkbox, Button } from '@headlessui/react';
+import { CheckIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-export function RegisterForm() {
+/**
+ * @returns {import('react').ReactElement} the registration form for the registration page
+ */
+export default function RegisterForm() {
+  const [checked, setChecked] = useState(false);
+
+  const onSubmit = (e, type) => {
+    e.preventDefault()
+  }
+
   return (
-    <form className="flex w-96 flex-col gap-4">
-      <div>
-        <div className="mb-2 block">
-          <div htmlFor="firstname" value="Your first name" />
-        </div>
-        <div id="firstname" type="text" placeholder="john" required />
-      </div>
-      <div>
-        <div className="mb-2 block">
-          <div htmlFor="lastname" value="Your last name" />
-        </div>
-        <div id="lastname" type="text" placeholder="doe" required />
-      </div>
-      <div>
-        <div className="mb-2 block">
-          <div htmlFor="username" value="Your username" />
-        </div>
-        <div id="username" type="text" placeholder="johndoe" required />
-      </div>
-      <div>
-        <div className="mb-2 block">
-          <div htmlFor="email2" value="Your email" />
-        </div>
-        <div
-          id="email2"
-          type="email"
-          placeholder="name@netsblox.com"
+    <form className="flex w-96 flex-col gap-4 rounded-xl bg-zinc-800 p-8">
+      <Field className="flex flex-col">
+        <Label> First Name: </Label>
+        <Input
+          name="first_name"
+          type="text"
+          placeholder="john"
           required
+          className="rounded bg-zinc-900 p-1"
         />
-      </div>
-      <div>
-        <div className="mb-2 block">
-          <div htmlFor="password2" value="Your password" />
-        </div>
-        <div id="password2" type="password" required />
-      </div>
-      <div>
-        <div className="mb-2 block">
-          <div htmlFor="repeat-password" value="Repeat password" />
-        </div>
-        <div id="repeat-password" type="password" required />
-      </div>
-      <div className="flex items-center gap-2">
-        <div id="agree" />
-        <div htmlFor="agree" className="flex">
+      </Field>
+      <Field className="flex flex-col">
+        <Label> Last Name: </Label>
+        <Input
+          name="last_name"
+          type="text"
+          placeholder="doe"
+          required
+          className="rounded bg-zinc-900 p-1"
+        />
+      </Field>
+      <Field className="flex flex-col">
+        <Label> Username: </Label>
+        <Input
+          name="username"
+          type="text"
+          placeholder="johndoe"
+          required
+          className="rounded bg-zinc-900 p-1"
+        />
+      </Field>
+      <Field className="flex flex-col">
+        <Label> Email:</Label>
+        <Input
+          name="email"
+          type="email"
+          placeholder="abc@d.com"
+          required
+          className="rounded bg-zinc-900 p-1"
+        />
+      </Field>
+      <Field className="flex flex-col">
+        <Label> Password:</Label>
+        <Input
+          name="password"
+          type="password"
+          required
+          className="rounded bg-zinc-900 p-1"
+        />
+      </Field>
+      <Field className="flex flex-col">
+        <Label className="block"> Repeat Password: </Label>
+        <Input
+          name="repeat-password"
+          type="password"
+          required
+          className="rounded bg-zinc-900 p-1"
+        />
+      </Field>
+      <Field>
+        <Checkbox
+          checked={checked}
+          onChange={setChecked}
+          name="terms"
+          value="accept"
+          className="transition-color mr-1.5 inline-block h-4 w-4 overflow-hidden rounded border border-zinc-100 bg-zinc-900 duration-100 data-[checked]:bg-amber-600"
+        >
+          <CheckIcon className={`${checked? 'visible': 'invisible'}`}/>
+        </Checkbox>
+        <Label>
           I agree with the&nbsp;
           <Link
             to="/terms"
-            className="text-primary-500 hover:text-primary-400 hover:underline"
+            className="hover:text-primary-400 inline-block text-amber-600 hover:underline"
           >
-            terms and conditions
+            terms and conditions.
           </Link>
-        </div>
-      </div>
+        </Label>
+      </Field>
 
-      <div type="submit">Register new account</div>
+      <Field className="flex flex-row justify-between gap-2">
+        <Button
+          type="submit"
+          className="rounded-full border border-gray-100 bg-zinc-900 p-1 shadow-black duration-100 hover:not-active:-translate-y-0.5 hover:not-active:shadow flex-1/2"
+          onClick={(e) => onSubmit(e, 'teacher')}
+        >
+          I am a student
+        </Button>
+
+        <Button
+          type="submit"
+          className="rounded-full border border-amber-500 bg-zinc-900 p-1 shadow-black duration-100 hover:not-active:-translate-y-0.5 hover:not-active:shadow flex-1/2 text-amber-500"
+          onClick={(e) => onSubmit(e, 'student')}
+        >
+          I am a teacher
+        </Button>
+      </Field>
     </form>
   );
 }

@@ -8,6 +8,7 @@ import RegistrationPage from '$pages/RegisterPage.jsx';
 import LoginPage from '$pages/LoginPage';
 import StudentHomePage from '$pages/StudentHomePage';
 import TermsPage from '$pages/TermsPage';
+import JoinClassPage from '$pages/JoinClassPage';
 
 const root = document.getElementById('root');
 
@@ -28,9 +29,9 @@ ReactDOM.createRoot(root).render(
           <Route path="playground" element={<Playground />} />
           <Route path="s/">
             <Route path="home" element={<StudentHomePage />} />
-            <Route path="join" element={<StudentHomePage />} />
+            <Route path="join" element={<JoinClassPage />} />
             <Route path="classes" element={<StudentHomePage />} />
-            <Route path="courses/:userId" element={<StudentHomePage />} />
+            <Route path="courses" element={<StudentHomePage />} />
           </Route>
           <Route path="t/">
             <Route path="home" element={<StudentHomePage />} />

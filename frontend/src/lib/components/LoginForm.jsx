@@ -9,16 +9,15 @@ import { Input } from '@headlessui/react';
  */
 export function LoginForm() {
   const navigate = useNavigate();
-  const userId = 'temp';
 
   const onGithubLogin = (e) => {
     e.preventDefault();
-    navigate('/students/home/' + userId);
+    navigate('/s/home');
   };
 
   const onLogin = (e) => {
     e.preventDefault();
-    navigate('/students/home/' + userId);
+    navigate('/s/home');
   };
 
   return (
@@ -27,15 +26,15 @@ export function LoginForm() {
       <h1 className="text-center text-2xl font-bold">Login</h1>
       <Field className="flex flex-col">
         <Label> username: </Label>
-        <Input name="username" className="rounded bg-zinc-900 p-1" />
+        <Input name="username" className="rounded bg-zinc-900 p-1" required />
       </Field>
       <Field className="flex flex-col">
         <Label> password: </Label>
-        <Input name="password" className="rounded bg-zinc-900 p-1" />
+        <Input name="password" className="rounded bg-zinc-900 p-1" required />
       </Field>
       <Button
         type="submit"
-        className="rounded-lg border border-gray-100 px-2 py-0.5 duration-100 bg-zinc-900 hover:not-active:-translate-y-0.5 hover:not-active:shadow shadow-black"
+        className="rounded-full border self-stretch  border-gray-100 bg-zinc-900 p-1 shadow-black duration-100 hover:not-active:-translate-y-0.5 hover:not-active:shadow"
         onClick={onLogin}
       >
         login

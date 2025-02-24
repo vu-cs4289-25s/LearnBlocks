@@ -16,7 +16,7 @@ export default function LandingPage() {
       </h2>
       <Button
         onClick={() => console.log('clicked')}
-        className="transition-color rounded-lg border-2 border-amber-700 p-2 shadow-amber-600/50 duration-100 hover:bg-amber-700 hover:shadow active:bg-amber-800 "
+        className="transition-color rounded-full border-2 border-amber-700 p-2 shadow-amber-600/50 duration-100 hover:bg-amber-700 hover:shadow active:bg-amber-800 "
       >
         Get Started
       </Button>
