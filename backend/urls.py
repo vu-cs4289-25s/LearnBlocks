@@ -31,6 +31,7 @@ router.register(r'module',views.ModuleViewSet,basename='module')
 router.register(r'progress',views.ProgressViewSet,basename='progress')
 router.register(r'assignment',views.AssignmentViewSet,basename='assignment')
 router.register(r'session',views.SessionViewSet,basename='session')
+router.register(r'project',views.ProjectViewSet,basename='project')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),

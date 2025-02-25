@@ -100,7 +100,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(mock_class_list)
     @action(detail=True, methods=['post'], url_path='add_class')
     def add_class(self, request, pk=None):
-        return Response(mock_rooster)
+        return Response(mock_class)
     @action(detail=True, methods=['get'], url_path='progress')
     def progress(self, request, pk=None):
         return Response(progress_list)
@@ -204,4 +204,16 @@ class SessionViewSet(viewsets.ModelViewSet):
     def reset_session(self, request, *args, **kwargs):
         request.session.flush()
         return Response()
-    
+
+class ProjectViewSet(viewsets.ModelViewSet):
+    serializer_class=DynamicFieldsSerializer
+    def get_queryset(self):
+        return projects
+    def retrieve(self, request, *args, **kwargs):
+        return Response(project_data_1)
+    def create(self, request, *args, **kwargs):
+        return Response(project_data_1)
+    def update(self, request, *args, **kwargs):
+        return Response(project_data_1)
+    def destroy(self, request, *args, **kwargs):
+        return Response()
