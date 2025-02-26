@@ -109,8 +109,54 @@ function controlWhileUntilHandler(block) {
 function controlForHandler(block) {
     if (block === undefined) return '';
     if (block.inputs === undefined) return 'for :\n';
+
     const variableName = SCRIPT_VARIABLES[block.fields.VAR.id];
-    console.log(variableName);
+
+    const fromBlock = block.inputs.FROM;
+    const toBlock = block.inputs.TO;
+    const byBlock = block.inputs.BY;
+
+    const rawFrom = fromBlock.block === undefined ? fromBlock.shadow : fromBlock.block;
+    const rawTo = toBlock.block === undefined ? toBlock.shadow : toBlock.block;
+    const rawBy = byBlock.block === undefined ? byBlock.shadow : byBlock.block;
+
+    const _from = parseBlock(rawFrom);
+    const _to = parseBlock(rawTo);
+    const _by = parseBlock(rawBy);
+
+    let code = `for ${variableName} in range(${_from}, ${_to}, ${_by}):\n`;
+
+    const nestedComponent = block.inputs.DO;
+    if (nestedComponent !== undefined)
+        code += createNestedComponent(nestedComponent.block);
+
+    return code;
+}
+
+function controlForEachHandler(block) {
+    if (block === undefined) return '';
+    if (block.inputs === undefined) return 'for :\n';
+
+    const variableName = SCRIPT_VARIABLES[block.fields.VAR.id];
+    const list = block.inputs.LIST === undefined ? '' : parseBlock(block.inputs.LIST.block);
+
+    let code = `for ${variableName} in ${list}:\n`;
+
+    const nestedComponent = block.inputs.DO;
+    if (nestedComponent !== undefined)
+        code += createNestedComponent(nestedComponent.block);
+
+    return code;
+}
+
+function controlFlowStatementHandler(block) {
+    if (block === undefined) return '';
+    switch (block.fields.FLOW) {
+        case 'BREAK':
+            return 'break\n';
+        case 'CONTINUE':
+            return 'continue\n';
+    }
 }
 
 //VARIABLES
@@ -161,6 +207,10 @@ function parseBlock(block) {
             return controlWhileUntilHandler(block);
         case 'controls_for':
             return controlForHandler(block);
+        case 'controls_forEach':
+            return controlForEachHandler(block);
+        case 'controls_flow_statements':
+            return controlFlowStatementHandler(block);
         case 'math_number':
             return block.fields.NUM;
         case 'variables_set':
