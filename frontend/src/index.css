@@ -1,32 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap'); /* import font */
 @import 'tailwindcss';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-primary-50: #fff7ed;
-  --color-primary-100: #ffedd5;
-  --color-primary-200: #fed7aa;
-  --color-primary-300: #fdba74;
-  --color-primary-400: #fb923c;
-  --color-primary-500: #f97316;
-  --color-primary-600: #ea580c;
-  --color-primary-700: #c2410c;
-  --color-primary-800: #9a3412;
-  --color-primary-900: #7c2d12;
+  --color-primary-500: oklch(0.533 0.1317 49.64);
 
-  --color-gray-50: #fafafa;
-  --color-gray-100: #f5f5f5;
-  --color-gray-200: #e5e5e5;
-  --color-gray-300: #d4d4d4;
-  --color-gray-400: #a3a3a3;
-  --color-gray-500: #737373;
-  --color-gray-600: #525252;
-  --color-gray-700: #404040;
-  --color-gray-800: #262626;
-  --color-gray-900: #171717;
+  --font-sans: Rubik, sans-serif; /* swap default with imported font*/
 }
 
- /* WARN: This fixes react blocklys scrollbar problem*/
-.blocklyFlyoutScrollbar[display="none"] {
-    display: none;
+/* WARN: This fixes react blocklys scrollbar problem*/
+.blocklyFlyoutScrollbar[display='none'] {
+  display: none;
 }

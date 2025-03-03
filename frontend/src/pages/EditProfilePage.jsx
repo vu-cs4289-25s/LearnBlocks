@@ -1,6 +1,6 @@
-import RegisterForm from '$lib/components/RegisterForm';
+import EditProfileWidget from "$lib/components/EditProfileWidget";
 
-export default function RegistrationPage() {
+export default function EditProfilePage() {
   return (
     <main className="flex flex-1 flex-row items-center justify-evenly ">
       <figure className="flex flex-col gap-10 max-md:hidden">
@@ -13,7 +13,7 @@ export default function RegistrationPage() {
           LearnBlocks
         </h1>
       </figure>
-        <RegisterForm />
+        <EditProfileWidget/>
     </main>
   );
 }

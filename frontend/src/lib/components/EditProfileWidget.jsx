@@ -1,12 +1,11 @@
 import { Field, Label, Input, Checkbox, Button } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 
 /**
  * @returns {import('react').ReactElement} the registration form for the registration page
  */
-export default function RegisterForm() {
+export default function EditProfileWidget() {
   const [checked, setChecked] = useState(false);
 
   const onSubmit = (e, type) => {
@@ -73,42 +72,14 @@ export default function RegisterForm() {
           className="rounded bg-zinc-900 p-1"
         />
       </Field>
-      <Field>
-        <Checkbox
-          checked={checked}
-          onChange={setChecked}
-          name="terms"
-          value="accept"
-          className="transition-color mr-1.5 inline-block h-4 w-4 overflow-hidden rounded border border-zinc-100 bg-zinc-900 duration-100 data-[checked]:bg-amber-600"
-        >
-          <CheckIcon className={`${checked? 'visible': 'invisible'}`}/>
-        </Checkbox>
-        <Label>
-          I agree with the&nbsp;
-          <Link
-            to="/terms"
-            className="hover:text-primary-400 inline-block text-amber-600 hover:underline"
-          >
-            terms and conditions.
-          </Link>
-        </Label>
-      </Field>
 
-      <Field className="flex flex-row justify-between gap-2">
+      <Field className="flex flex-row justify-between ">
         <Button
           type="submit"
           className="rounded-full border border-gray-100 bg-zinc-900 p-1 shadow-black duration-100 hover:not-active:-translate-y-0.5 hover:not-active:shadow flex-1/2"
           onClick={(e) => onSubmit(e, 'teacher')}
         >
-          I am a student
-        </Button>
-
-        <Button
-          type="submit"
-          className="rounded-full border border-amber-500 bg-zinc-900 p-1 shadow-black duration-100 hover:not-active:-translate-y-0.5 hover:not-active:shadow flex-1/2 text-amber-500"
-          onClick={(e) => onSubmit(e, 'student')}
-        >
-          I am a teacher
+          Save
         </Button>
       </Field>
     </form>

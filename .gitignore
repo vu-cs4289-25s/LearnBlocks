@@ -5,3 +5,4 @@ frontend/dist
 backend/__pycache__
 learnblocks/__pycache__
 *.swp
+.venv
