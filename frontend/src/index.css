@@ -1,3 +1,15 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap'); /* import font */
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-primary-500: oklch(0.533 0.1317 49.64);
+
+  --font-sans: Rubik, sans-serif; /* swap default with imported font*/
+}
+
+/* WARN: This fixes react blocklys scrollbar problem*/
+.blocklyFlyoutScrollbar[display='none'] {
+  display: none;
+}

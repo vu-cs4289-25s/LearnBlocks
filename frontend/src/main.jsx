@@ -1,9 +1,17 @@
-import ReactDOM from 'react-dom/client';
-import LandingPage from './pages/Landing.jsx';
-import Layout from './components/Layout.jsx';
-
 import './index.css';
+import ReactDOM from 'react-dom/client';
+import Playground from '$pages/Playground.jsx';
+import LandingPage from '$pages/Landing.jsx';
+import Layout from '$lib/components/Layout.jsx';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import RegistrationPage from '$pages/RegisterPage.jsx';
+import LoginPage from '$pages/LoginPage';
+import StudentHomePage from '$pages/StudentHomePage';
+import TermsPage from '$pages/TermsPage';
+import JoinClassPage from '$pages/JoinClassPage';
+import CourseCatalogPage from '$pages/CourseCatalogPage';
+import StudentCoursesPage from '$pages/StudentCoursesPage';
+import EditProfilePage from '$pages/EditProfilePage';
 
 const root = document.getElementById('root');
 
@@ -12,10 +20,33 @@ if (!root) {
 }
 
 ReactDOM.createRoot(root).render(
-  <BrowserRouter>
+  <BrowserRouter >
     <Layout>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/">
+          <Route index element={<LandingPage />} />
+          <Route path="register" element={<RegistrationPage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="terms" element={<TermsPage />} />
+          <Route path="catalog" element={<CourseCatalogPage/>} />
+          <Route path="playground" element={<Playground />} />
+          <Route path="s/">
+            <Route path="home" element={<StudentHomePage />} />
+            <Route path="join" element={<JoinClassPage />} />
+            <Route path="classes" element={<StudentHomePage />} />
+            <Route path="courses/:username" element={<StudentCoursesPage/>} />
+          </Route>
+          <Route path="t/">
+            <Route path="home" element={<StudentHomePage />} />
+            <Route path="classes" element={<StudentHomePage />} />
+            <Route path="courses" element={<StudentHomePage />} />
+          </Route>
+          <Route path="u/">
+            <Route path="profile/:username" element={<StudentHomePage />} />
+            <Route path="edit" element={<EditProfilePage/>} />
+            <Route path="courses/:username" element={<StudentHomePage />} />
+          </Route>
+        </Route>
       </Routes>
     </Layout>
   </BrowserRouter>,

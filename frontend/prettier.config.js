@@ -1,10 +1,10 @@
 /** @type {import('prettier').Config} */
 export default {
-  plugins: ["prettier-plugin-tailwindcss"],
+  plugins: ['prettier-plugin-tailwindcss'],
   // tailwindcss
-  tailwindAttributes: ["theme"],
-  tailwindFunctions: ["twMerge", "createTheme"],
+  tailwindAttributes: ['theme'],
+  tailwindFunctions: ['tw', 'twMerge', 'createTheme'],
   singleQuote: true,
-  trailingComma: "all",
-  printWidth: 80
+  trailingComma: 'all',
+  printWidth: 80,
 };
