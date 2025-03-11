@@ -189,23 +189,6 @@ const TOOLBOX =  {
           },
         },
         {
-          type: 'math_number_property',
-          kind: 'block',
-          fields: {
-            PROPERTY: 'EVEN',
-          },
-          inputs: {
-            NUMBER_TO_CHECK: {
-              shadow: {
-                type: 'math_number',
-                fields: {
-                  NUM: 0,
-                },
-              },
-            },
-          },
-        },
-        {
           type: 'math_round',
           kind: 'block',
           fields: {
@@ -252,36 +235,6 @@ const TOOLBOX =  {
           },
         },
         {
-          type: 'math_constrain',
-          kind: 'block',
-          inputs: {
-            VALUE: {
-              shadow: {
-                type: 'math_number',
-                fields: {
-                  NUM: 50,
-                },
-              },
-            },
-            LOW: {
-              shadow: {
-                type: 'math_number',
-                fields: {
-                  NUM: 1,
-                },
-              },
-            },
-            HIGH: {
-              shadow: {
-                type: 'math_number',
-                fields: {
-                  NUM: 100,
-                },
-              },
-            },
-          },
-        },
-        {
           type: 'math_random_int',
           kind: 'block',
           inputs: {
@@ -302,10 +255,6 @@ const TOOLBOX =  {
               },
             },
           },
-        },
-        {
-          type: 'math_random_float',
-          kind: 'block',
         },
         {
           type: 'math_atan2',

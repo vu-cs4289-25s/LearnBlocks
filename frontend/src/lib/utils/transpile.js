@@ -1,14 +1,4 @@
 //LOGIC
-
-function createLogicCompare(block) {
-    if (block.fields.OP === 'EQ') {
-        const a = parseBlock(block.inputs.A.block);
-        const b = parseBlock(block.inputs.B.block);
-        return `${a} = ${b}`;
-    };
-    return '';
- }
-
 function logicCompareHandler(block) {
     const a = parseBlock(block.inputs.A.block);
     const b = parseBlock(block.inputs.B.block);
@@ -159,6 +149,169 @@ function controlFlowStatementHandler(block) {
     }
 }
 
+//MATH
+
+function mathArithmeticHandler(block) {
+    if (block === undefined) return '';
+
+    let op = '';
+    switch(block.fields.OP) {
+        case 'ADD':
+            op = '+';
+            break;
+        case 'MINUS':
+            op = '-';
+            break;
+        case 'MULTIPLY':
+            op = '*';
+            break;
+        case 'DIVIDE':
+            op = '/';
+            break;
+        case 'POWER':
+            op = '**';
+            break;
+    }
+
+    const aSlot = block.inputs.A;
+    const bSlot = block.inputs.B;
+
+    const a = parseBlock(aSlot.block === undefined ? aSlot.shadow : aSlot.block);
+    const b = parseBlock(bSlot.block === undefined ? bSlot.shadow : bSlot.block);
+
+    return `${a} ${op} ${b}\n`;
+}
+
+function mathSingleHandler(block) {
+    if (block === undefined) return '';
+
+    const aSlot = block.inputs.NUM;
+    const a = parseBlock(aSlot.block === undefined ? aSlot.shadow : aSlot.block);
+
+
+    switch(block.fields.OP) {
+        case 'ROOT':
+            return `math.sqrt(${a})`;
+        case 'ABS':
+            return `math.abs(${a})`;
+        case 'NEG':
+            return `(-1 * ${a})`;
+        case 'LN':
+            return `math.log(${a})`;
+        case 'LOG10':
+            return `math.log10(${a})`;
+        case 'EXP':
+            return `math.exp(${a})`;
+        case 'POW10':
+            return `10 ** ${a}`;
+    }
+
+    return '';
+}
+
+function mathTrigHandler(block) {
+    if (block === undefined) return '';
+
+    const aSlot = block.inputs.NUM;
+    const a = parseBlock(aSlot.block === undefined ? aSlot.shadow : aSlot.block);
+
+    switch(block.fields.OP) {
+        case 'SIN':
+            return `math.sin(${a})`;
+        case 'COS':
+            return `math.cos(${a})`
+        case 'TAN':
+            return `math.tan(${a})`;
+        case 'ASIN':
+            return `math.asin(${a})`;
+        case 'ACOS':
+            return `math.acos(${a})`
+        case 'ATAN':
+            return `math.atan(${a})`;
+    }
+
+    return '';
+}
+
+function mathConstantHandler(block) {
+    if (block === undefined) return '';
+
+    switch(block.fields.CONSTANT) {
+        case 'PI':
+            return 'math.pi';
+        case 'E':
+            return 'math.e';
+        case 'GOLDEN_RATIO':
+            return '(1 + math.sqrt(5)) / 2';
+        case 'SQRT2':
+            return 'math.sqrt(2)';
+        case 'SQRT1_2':
+            return 'math.sqrt(0.5)';
+    }
+
+    return '';
+}
+
+function mathRoundHandler(block) {
+    if (block === undefined) return '';
+
+    const aSlot = block.inputs.NUM;
+    const a = parseBlock(aSlot.block === undefined ? aSlot.shadow : aSlot.block);
+
+    switch(block.fields.OP) {
+        case 'ROUND':
+            return `round(${a})`;
+        case 'ROUNDUP':
+            return `math.ceil(${a})`;
+        case 'ROUNDDOWN':
+            return `math.floor(${a})`;
+    }
+
+    return '';
+}
+
+function mathOnListHandler(block) {
+    if (block === undefined) return '';
+    // TODO
+    return '';
+}
+
+function mathModuloHandler(block) {
+    if (block === undefined) return '';
+
+    const aSlot = block.inputs.DIVIDEN;
+    const bSlot = block.inputs.DIVISOR;
+
+    const a = parseBlock(aSlot.block === undefined ? aSlot.shadow : aSlot.block);
+    const b = parseBlock(bSlot.block === undefined ? bSlot.shadow : bSlot.block);
+
+    return 'a % b';
+}
+
+function mathRandomIntHandler(block) {
+    if (block === undefined) return '';
+
+    const aSlot = block.inputs.FROM;
+    const bSlot = block.inputs.TO;
+
+    const a = parseBlock(aSlot.block === undefined ? aSlot.shadow : aSlot.block);
+    const b = parseBlock(bSlot.block === undefined ? bSlot.shadow : bSlot.block);
+
+    return `random.randint(${a}, ${b})`;
+}
+
+function mathATan2Handler(block) {
+    if (block === undefined) return '';
+
+    const aSlot = block.inputs.X;
+    const bSlot = block.inputs.Y;
+
+    const a = parseBlock(aSlot.block === undefined ? aSlot.shadow : aSlot.block);
+    const b = parseBlock(bSlot.block === undefined ? bSlot.shadow : bSlot.block);
+
+    return `math.atan2(${b}, ${a})`;
+}
+
 //VARIABLES
 
 const SCRIPT_VARIABLES = {};
@@ -213,6 +366,22 @@ function parseBlock(block) {
             return controlFlowStatementHandler(block);
         case 'math_number':
             return block.fields.NUM;
+        case 'math_arithmetic':
+            return mathArithmeticHandler(block);
+        case 'math_single':
+            return mathSingleHandler(block);
+        case 'math_trig':
+            return mathTrigHandler(block);
+        case 'math_constant':
+            return mathConstantHandler(block);
+        case 'math_on_list':
+            return mathOnListHandler(block);
+        case 'math_modulo':
+            return mathModuloHandler(block);
+        case 'math_random_int':
+            return mathRandomIntHandler(block);
+        case 'math_atan2':
+            return mathATan2Handler(block);
         case 'variables_set':
             return variablesSetHandler(block);
         case 'math_change': 
@@ -225,6 +394,8 @@ function parseBlock(block) {
 }
 
 function btop(code) {
+    if (code === '') return '';
+    if (code.blocks === undefined) return '';
     if (code.variables !== undefined) 
         code.variables.forEach(variable => SCRIPT_VARIABLES[variable.id] = variable.name);
     let pythonCode = '';
