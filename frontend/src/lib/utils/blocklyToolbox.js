@@ -293,10 +293,6 @@ const TOOLBOX =  {
           },
         },
         {
-          type: 'text_join',
-          kind: 'block',
-        },
-        {
           type: 'text_append',
           kind: 'block',
           fields: {
@@ -322,20 +318,6 @@ const TOOLBOX =  {
                 type: 'text',
                 fields: {
                   TEXT: 'abc',
-                },
-              },
-            },
-          },
-        },
-        {
-          type: 'text_isEmpty',
-          kind: 'block',
-          inputs: {
-            VALUE: {
-              shadow: {
-                type: 'text',
-                fields: {
-                  TEXT: '',
                 },
               },
             },
@@ -425,57 +407,10 @@ const TOOLBOX =  {
           },
         },
         {
-          type: 'text_trim',
-          kind: 'block',
-          fields: {
-            MODE: 'BOTH',
-          },
-          inputs: {
-            TEXT: {
-              shadow: {
-                type: 'text',
-                fields: {
-                  TEXT: 'abc',
-                },
-              },
-            },
-          },
-        },
-        {
           type: 'text_count',
           kind: 'block',
           inputs: {
             SUB: {
-              shadow: {
-                type: 'text',
-                fields: {
-                  TEXT: '',
-                },
-              },
-            },
-            TEXT: {
-              shadow: {
-                type: 'text',
-                fields: {
-                  TEXT: '',
-                },
-              },
-            },
-          },
-        },
-        {
-          type: 'text_replace',
-          kind: 'block',
-          inputs: {
-            FROM: {
-              shadow: {
-                type: 'text',
-                fields: {
-                  TEXT: '',
-                },
-              },
-            },
-            TO: {
               shadow: {
                 type: 'text',
                 fields: {

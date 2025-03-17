@@ -312,6 +312,182 @@ function mathATan2Handler(block) {
     return `math.atan2(${b}, ${a})`;
 }
 
+//TEXT
+
+function textHandler(block) {
+    if (block === undefined) return '';
+    const text = block.fields.TEXT;
+    return `'${text}'`;
+}
+
+function textAppendHandler(block) {
+    if (block === undefined) return '';
+
+    const variableName = SCRIPT_VARIABLES[block.fields.VAR.id];
+    const inputBlock = block.inputs.TEXT;
+    const input = parseBlock(inputBlock.block ? inputBlock.block : inputBlock.shadow);
+
+    return `${variableName} += ${input}`;
+}
+
+function textLengthHandler(block) {
+    if (block === undefined) return '';
+    const aSlot = block.inputs.VALUE;
+    const a = parseBlock(aSlot.block === undefined ? aSlot.shadow : aSlot.block);
+    return `len(${a})`;
+}
+
+function textIndexOfHandler(block) {
+    if (block === undefined) return '';
+
+    const valueSlot = block.inputs.VALUE;
+    const findSlot = block.inputs.FIND;
+
+    const value = valueSlot ? parseBlock(valueSlot.block) : '[value]';
+    const find = parseBlock(findSlot.block ? findSlot.block : findSlot.shadow);
+
+    switch (block.fields.END) {
+        case 'FIRST':
+            return `${value}.find(${find})`;
+        case 'LAST':
+            return `${value}.rfind(${find})`;
+    }
+
+    return '';
+}
+
+function textCharAtHandler(block) {
+    if (block === undefined) return '';
+
+    const valueSlot = block.inputs.VALUE;
+    const value = valueSlot ? parseBlock(valueSlot.block) : '[value]';
+
+    if (block.fields.WHERE === 'FROM_START' || block.fields.WHERE === 'FROM_END') {
+        const atSlot = block.inputs.AT;
+        const at = atSlot ? parseBlock(atSlot.block) : '[at]';
+        switch(block.fields.WHERE) {
+            case 'FROM_START':
+                return `${value}[${at - 1}]`;
+            case 'FROM_END':
+                return `${value}[${at * -1}]`;
+        }
+    }
+
+    switch(block.fields.WHERE) {
+        case 'FIRST':
+            return `${value}[0]`;
+        case 'LAST':
+            return `${value}[-1]`;
+        case 'RANDOM':
+            return `${value}[random.randint(0, len(${value}))]`;
+    }
+
+    return '';
+}
+
+function textGetSubStringHandler(block) {
+    if (block === undefined) return '';
+
+    const stringSlot = block.inputs ? block.inputs.STRING : undefined;
+    const string = stringSlot ? parseBlock(stringSlot.block) : '[string]';
+
+    const at1Slot = block.inputs ? block.inputs.AT1 : undefined;
+    const at1 = at1Slot ? parseBlock(at1Slot.block) : '[at1]';
+
+    const at2Slot = block.inputs ? block.inputs.AT2 : undefined;
+    const at2 = at2Slot ? parseBlock(at2Slot.block) : '[at2]';
+
+    let listOpNum1 = '';
+    if (at1Slot) {
+        switch(block.fields.WHERE1) {
+            case 'FROM_START':
+                listOpNum1 = at1 - 1;
+            case 'FIRST':
+                break;
+            case 'FROM_END':
+                listOpNum1 = at1 * -1;
+        }
+    }
+
+    let listOpNum2 = '';
+    if (at2Slot) {
+        switch(block.fields.WHERE2) {
+            case 'FROM_START':
+                listOpNum2 = at2 - 1;
+            case 'L':
+                break;
+            case 'FROM_END':
+                listOpNum2 = at2 * -1;
+        }
+    }
+
+    return `${string}[${listOpNum1}:${listOpNum2}]`;
+}
+
+function textChangeCaseHandler(block) {
+    if (block === undefined) return '';
+
+    const textSlot = block.inputs.TEXT;
+    const text = textSlot.shadow ? parseBlock(textSlot.shadow) : parseBlock(testSlot.block);
+
+    switch(block.fields.CASE) {
+        case 'UPPERCASE':
+            return `${text}.upper()`;
+        case 'LOWERCASE':
+            return `${text}.lower()`;
+        case 'TITLECASE':
+            return `${text}.title()`;
+    }
+
+    return '';
+}
+
+function textCountHandler(block) {
+    if (block === undefined) return '';
+
+    const subSlot = block.inputs.SUB;
+    const sub = subSlot.shadow ? parseBlock(subSlot.shadow) : parseBlock(subSlot.block);
+
+    const textSlot = block.inputs.TEXT;
+    const text = textSlot.shadow ? parseBlock(textSlot.shadow) : parseBlock(textSlot.block);
+
+    return `${text}.count(${sub})`;
+}
+
+function textReverseHandler(block) {
+    if (block === undefined) return '';
+
+    const textSlot = block.inputs.TEXT;
+    const text = textSlot.shadow ? parseBlock(textSlot.shadow) : parseBlock(textSlot.block);
+
+    return `${text}[::-1]`;
+}
+
+function textPrintHandler(block) {
+    if (block === undefined) return '';
+
+    const textSlot = block.inputs.TEXT;
+    const text = textSlot.shadow ? parseBlock(textSlot.shadow) : parseBlock(textSlot.block);
+
+    return `print(${text})\n`;
+}
+
+function textPromptExtHandler(block) {
+    if (block === undefined) return '';
+
+    const textSlot = block.inputs.TEXT;
+    const text = textSlot.shadow ? parseBlock(textSlot.shadow) : parseBlock(textSlot.block);
+
+    switch(block.fields.TYPE) {
+        case 'TEXT':
+            return `input(${text})`;
+        case 'NUMBER':
+            return `int(input(${text}))`;
+    }
+    
+    return '';
+}
+ 
 //VARIABLES
 
 const SCRIPT_VARIABLES = {};
@@ -382,6 +558,28 @@ function parseBlock(block) {
             return mathRandomIntHandler(block);
         case 'math_atan2':
             return mathATan2Handler(block);
+        case 'text':
+            return textHandler(block);
+        case 'text_append':
+            return textAppendHandler(block);
+        case 'text_length':
+            return textLengthHandler(block);
+        case 'text_indexOf':
+            return textIndexOfHandler(block);
+        case 'text_charAt':
+            return textCharAtHandler(block);
+        case 'text_getSubstring':
+            return textGetSubStringHandler(block);
+        case 'text_changeCase':
+            return textChangeCaseHandler(block);
+        case 'text_count':
+            return textCountHandler(block);
+        case 'text_reverse':
+            return textReverseHandler(block);
+        case 'text_print':
+            return textPrintHandler(block);
+        case 'text_prompt_ext':
+            return textPromptExtHandler(block);
         case 'variables_set':
             return variablesSetHandler(block);
         case 'math_change': 
