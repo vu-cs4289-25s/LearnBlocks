@@ -487,6 +487,191 @@ function textPromptExtHandler(block) {
     
     return '';
 }
+
+//LISTS
+
+function listsCreateWithHandler(block) {
+    if (block === undefined) return '';
+    if (block.inputs === undefined) return '';
+
+    const elemetns = Object.keys(block.inputs).map(key => parseBlock(block.inputs[key].block));
+    const elementString = elemetns.toString();
+
+    return `[${elementString}]`;
+}
+
+function listsRepeatHandler(block) {
+    if (block === undefined) return '';
+
+    const repeatSlot = block.inputs.NUM;
+    const repeat = repeatSlot.shadow ? parseBlock(repeatSlot.shadow) : parseBlock(repeatSlot.block);
+
+    const itemSlot = block.inputs.ITEM;
+    const item = itemSlot ? parseBlock(itemSlot.block) : '';
+
+    const arr = (new Array(repeat)).fill(item).toString();
+
+    return `[${arr}]`;
+}
+
+function listsLengthHandler(block) {
+    if (block === undefined) return '';
+
+    const valueSlot = block.inputs.VALUE;
+    const value = valueSlot ? parseBlock(valueSlot.block) : '[value]';
+
+    return `len(${value})`;
+} 
+
+function listsIndexOfHandler(block) {
+    if (block === undefined) return '';
+
+    const valueSlot = block.inputs.VALUE;
+    const findSlot = block.inputs.FIND;
+
+    const value = valueSlot ? parseBlock(valueSlot.block) : '[value]';
+    let find = '[find]';
+    if (findSlot)
+        find = parseBlock(findSlot.block ? findSlot.block : findSlot.shadow);
+
+    switch (block.fields.END) {
+        case 'FIRST':
+            return `${value}.index(${find})`;
+        case 'LAST':
+            return `len(${value}) - 1 - ${value}[::-1].index(${find})`;
+    }
+
+    return '';
+}
+
+function listsGetIndexHandler(block) {
+    if (block === undefined) return '';
+
+    const valueSlot = block.inputs.VALUE;
+    const value = valueSlot ? parseBlock(valueSlot.block) : '[value]';
+
+    const atSlot = block.inputs.AT;
+    const at = atSlot ? parseBlock(atSlot.block) : '[at]';
+
+    let index = '';
+    switch(block.fields.WHERE) {
+        case 'FROM_START':
+            index = at - 1;
+            break;
+        case 'FROM_END':
+            index = at * -1;
+            break;
+        case 'FIRST':
+            index = 0
+            break;
+        case 'LAST':
+            index = -1;
+            break;
+        case 'RANDOM':
+            index = `random.randint(0, len(${value}))`;
+            break;
+    }
+
+    switch(block.fields.MODE) {
+        case 'GET':
+            return `${value}[${index}]`;
+        case 'GET_REMOVE':
+            return `${value}.pop(${index})`;
+        case 'REMOVE':
+            return `${value}.remove(${index})\n`;
+    }
+
+    return '';
+}
+
+function listsSetIndexHandler(block) {
+    if (block === undefined) return '';
+
+    const valueSlot = block.inputs.LIST;
+    const value = valueSlot ? parseBlock(valueSlot.block) : '[list]';
+
+    const toSlot = block.inputs.TO;
+    const to = toSlot ? parseBlock(toSlot.block) : '[to]';
+
+    const atSlot = block.inputs.AT;
+    const at = atSlot ? parseBlock(atSlot.block) : '[at]';
+
+    let index = '';
+    switch(block.fields.WHERE) {
+        case 'FROM_START':
+            index = at - 1;
+            break;
+        case 'FROM_END':
+            index = at * -1;
+            break;
+        case 'FIRST':
+            index = 0
+            break;
+        case 'LAST':
+            index = -1;
+            break;
+        case 'RANDOM':
+            index = `random.randint(0, len(${value}))`;
+            break;
+    }
+
+    switch(block.fields.MODE) {
+        case 'SET':
+            return `${value}[${index}] = ${to}\n`;
+        case 'INSERT':
+            return `${value}.insert(${index}, ${to})\n`;
+    }
+
+    return '';
+}
+
+function listsGetSubListHandler(block) {
+    if (block === undefined) return '';
+
+    const listSlot = block.inputs ? block.inputs.LIST : undefined;
+    const list = listSlot ? parseBlock(listSlot.block) : '[list]';
+
+    const at1Slot = block.inputs ? block.inputs.AT1 : undefined;
+    const at1 = at1Slot ? parseBlock(at1Slot.block) : '[at1]';
+
+    const at2Slot = block.inputs ? block.inputs.AT2 : undefined;
+    const at2 = at2Slot ? parseBlock(at2Slot.block) : '[at2]';
+
+    let listOpNum1 = '';
+    if (at1Slot) {
+        switch(block.fields.WHERE1) {
+            case 'FROM_START':
+                listOpNum1 = at1 - 1;
+            case 'FIRST':
+                break;
+            case 'FROM_END':
+                listOpNum1 = at1 * -1;
+        }
+    }
+
+    let listOpNum2 = '';
+    if (at2Slot) {
+        switch(block.fields.WHERE2) {
+            case 'FROM_START':
+                listOpNum2 = at2 - 1;
+            case 'L':
+                break;
+            case 'FROM_END':
+                listOpNum2 = at2 * -1;
+        }
+    }
+
+    return `${list}[${listOpNum1}:${listOpNum2}]`;
+}
+
+function listsReverseHandler(block) {
+    if (block === undefined) return '';
+
+    const listSlot = block.inputs;
+    const list = listSlot ? parseBlock(listSlot.LIST.block) : '[list]';
+
+    return `${list}[::-1]`;
+}
  
 //VARIABLES
 
@@ -580,6 +765,22 @@ function parseBlock(block) {
             return textPrintHandler(block);
         case 'text_prompt_ext':
             return textPromptExtHandler(block);
+        case 'lists_create_with':
+            return listsCreateWithHandler(block);
+        case 'lists_repeat':
+            return listsRepeatHandler(block);
+        case 'lists_length':
+            return listsLengthHandler(block);
+        case 'lists_indexOf':
+            return listsIndexOfHandler(block);
+        case 'lists_getIndex':
+            return listsGetIndexHandler(block);
+        case 'lists_setIndex':
+            return listsSetIndexHandler(block);
+        case 'lists_getSublist':
+            return listsGetSubListHandler(block);
+        case 'lists_reverse':
+            return listsReverseHandler(block);
         case 'variables_set':
             return variablesSetHandler(block);
         case 'math_change': 

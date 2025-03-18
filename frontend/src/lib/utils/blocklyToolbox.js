@@ -486,10 +486,6 @@ const TOOLBOX =  {
           kind: 'block',
         },
         {
-          type: 'lists_create_with',
-          kind: 'block',
-        },
-        {
           type: 'lists_repeat',
           kind: 'block',
           inputs: {
@@ -505,10 +501,6 @@ const TOOLBOX =  {
         },
         {
           type: 'lists_length',
-          kind: 'block',
-        },
-        {
-          type: 'lists_isEmpty',
           kind: 'block',
         },
         {
@@ -589,33 +581,6 @@ const TOOLBOX =  {
                 },
               },
             },
-          },
-        },
-        {
-          type: 'lists_split',
-          kind: 'block',
-
-          fields: {
-            MODE: 'SPLIT',
-          },
-          inputs: {
-            DELIM: {
-              shadow: {
-                type: 'text',
-                fields: {
-                  TEXT: ',',
-                },
-              },
-            },
-          },
-        },
-        {
-          type: 'lists_sort',
-          kind: 'block',
-
-          fields: {
-            TYPE: 'NUMERIC',
-            DIRECTION: '1',
           },
         },
         {
