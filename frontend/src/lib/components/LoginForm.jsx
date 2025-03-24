@@ -1,27 +1,41 @@
-import GithubIcon from '$lib/assets/github-icon';
-import { Button, Field, Label } from '@headlessui/react';
-import { useNavigate } from 'react-router-dom';
-import { Input } from '@headlessui/react';
+import GithubIcon from "$lib/assets/github-icon";
+import { Button, Field, Label } from "@headlessui/react";
+import { useNavigate } from "react-router-dom";
+import { Input } from "@headlessui/react";
+import { useContext, useRef } from "react";
+import { AuthUserContext, ErrorContext } from "$lib/contexts/ErrorContext";
+import { tryLogin } from "$lib/utils/actions.mjs";
 
 /**
  * generates the form portion of the login card
- * @returns {import('react').ReactElement} Returns the value of x for the equation.
+ * @returns {import('react').ReactElement} Returns the form element.
  */
 export function LoginForm() {
   const navigate = useNavigate();
+  const { setError } = useContext(ErrorContext);
+  const { setAuthUser } = useContext(AuthUserContext);
+  const formRef = useRef(null);
 
   const onGithubLogin = (e) => {
     e.preventDefault();
-    navigate('/s/home');
+    setError("GitHub login not implemented");
   };
 
-  const onLogin = (e) => {
+  const onLogin = async (e) => {
     e.preventDefault();
-    navigate('/s/home');
+    const rawFormData = new FormData(formRef.current);
+    const data = Object.fromEntries(rawFormData.entries());
+    const res = await tryLogin(data);
+    if (res instanceof Error) return setError(res.message);
+    setAuthUser(res)
+    navigate(`/${res.role[0]}/home`);
   };
 
   return (
-    <form className="flex flex-col items-center gap-4 rounded-2xl bg-zinc-800 p-4">
+    <form
+      ref={formRef}
+      className="flex flex-col items-center gap-4 rounded-2xl bg-zinc-800 p-4"
+    >
       <img src="learnblocks.svg" alt="Learn Blocks Logo" />
       <h1 className="text-center text-2xl font-bold">Login</h1>
       <Field className="flex flex-col">
@@ -30,7 +44,7 @@ export function LoginForm() {
       </Field>
       <Field className="flex flex-col">
         <Label> password: </Label>
-        <Input name="password" className="rounded bg-zinc-900 p-1" required />
+        <Input name="password" type="password" className="rounded bg-zinc-900 p-1" required />
       </Field>
       <Button
         type="submit"

@@ -1,4 +1,4 @@
-import { Button } from '@headlessui/react';
+import { Link } from 'react-router-dom'
 
 export default function LandingPage() {
   return (
@@ -14,12 +14,12 @@ export default function LandingPage() {
       <h2 className="p-2 text-center text-xl font-bold dark:text-white">
         An Interactive Approach To Learning Code
       </h2>
-      <Button
-        onClick={() => console.log('clicked')}
+      <Link
+        to={'/register'}
         className="transition-color rounded-full border-2 border-amber-700 p-2 shadow-amber-600/50 duration-100 hover:bg-amber-700 hover:shadow active:bg-amber-800 "
       >
         Get Started
-      </Button>
+      </Link>
     </main>
   );
 }

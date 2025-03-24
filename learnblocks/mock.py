@@ -13,6 +13,7 @@ mock_session={
     "user_id": 1,
     "username": "johndoe",
     "email": "johndoe@example.com",
+    "role": "student",
 }
 
 mock_badge = {
