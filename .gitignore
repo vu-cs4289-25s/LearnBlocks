@@ -4,7 +4,10 @@ frontend/package-lock.json
 frontend/dist
 backend/__pycache__
 learnblocks/__pycache__
-__pycache__/
+__pycache__/*
 /frontend/build
 *.swp
 .venv
+/frontend/src/lib/blockly-transpiler/target
+/learnblocks/__pycache__
+/learnblocks/migrations
