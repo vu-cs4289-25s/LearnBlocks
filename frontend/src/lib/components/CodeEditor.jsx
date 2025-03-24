@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { BlocklyWorkspace } from 'react-blockly';
-import { btop } from '$lib/utils/transpile.js';
+import { btop, ptob } from '$lib/utils/transpile.js';
 import { TOOLBOX } from '$lib/utils/blocklyToolbox.js';
 
 // TODO - create theme
@@ -13,27 +13,28 @@ const WORKSPACE_CONFIG = {
     }
 };
 
-const BlocklyComponent = props => {
+const BlocklyComponent = ({ globalState, setLocalState }) => {
     return (
         <BlocklyWorkspace 
           className='w-2/3 h-96'
           toolboxConfiguration={TOOLBOX}
           workspaceConfiguration={WORKSPACE_CONFIG}
-          initialJson={null}
-          onWorkspaceChange={workspace => props.setState(btop(workspace))}
+          initialJson={ptob(globalState)}
+          onWorkspaceChange={setLocalState}
         />
     );
 };
 
-const PythonEditor = props => {
+const PythonEditor = ({ globalState, setLocalState }) => {
     const [state, setState] = useState('');
     
     const saveState = event => {
         setState(event.target.value);
+        setLocalState(event.target.value);
     }
 
     useEffect(() => {
-        setState(props.state);
+        setState(globalState);
     }, []);  
 
     return (
@@ -47,7 +48,8 @@ const PythonEditor = props => {
 
 export default function CodeEditor() {
     const [editorMode, setEditorMode] = useState('blockly');
-    const [editorState, setEditorState] = useState('');
+    const [globalState, setGlobalState] = useState('');
+    const [pythonLocalState, setPythonLocalState] = useState('');
 
     const changeLanguage = () => {
         if (editorMode === 'blockly') {
@@ -57,12 +59,21 @@ export default function CodeEditor() {
         }
     }
 
+    const updateBlocklyState = workspace => {
+        const transpiledCode = btop(workspace);
+        setGlobalState(transpiledCode);
+    }
+
+    const updatePythonState = python_source => {
+       //TODO
+    }
+
     return (
         <div className='w-full h-full'>
             {
               editorMode === 'blockly' ? 
-              <BlocklyComponent setState={setEditorState} /> : 
-              <PythonEditor state={editorState} />
+              <BlocklyComponent globalState={globalState} setLocalState={updateBlocklyState} /> : 
+              <PythonEditor globalState={globalState} setLocalState={updatePythonState} />
             }
             <div className='flex space-x-3'>
                 <button color='dark' size='sm' onClick={changeLanguage}>
