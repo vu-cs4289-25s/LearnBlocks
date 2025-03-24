@@ -9,3 +9,5 @@ __pycache__/
 *.swp
 .venv
 /frontend/src/lib/blockly-transpiler/target
+/learnblocks/__pycache__
+/learnblocks/migrations/__pycache__
