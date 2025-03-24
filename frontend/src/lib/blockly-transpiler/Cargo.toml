@@ -1,0 +1,17 @@
+[package]
+name = "blockly-transpiler"
+authors = ["Gabriel Barnard"]
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+rustpython-parser = "0.4.0"
+malachite-base = "0.5.1"
+malachite-bigint = "0.2.2"
+
+[package.metadata.wasm-pack.profile.profiling]
+wasm-opt = ["-01"]
