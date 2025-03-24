@@ -8,6 +8,6 @@ __pycache__/*
 /frontend/build
 *.swp
 .venv
+.env*
 /frontend/src/lib/blockly-transpiler/target
-/learnblocks/__pycache__
 /learnblocks/migrations

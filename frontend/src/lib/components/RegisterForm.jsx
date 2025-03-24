@@ -1,20 +1,34 @@
-import { Field, Label, Input, Checkbox, Button } from '@headlessui/react';
-import { CheckIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { ErrorContext } from "$lib/contexts/ErrorContext";
+import { Field, Label, Input, Checkbox, Button } from "@headlessui/react";
+import { CheckIcon } from "@heroicons/react/24/outline";
+import { useContext, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { tryRegister } from "$lib/utils/actions.mjs";
 
 /**
- * @returns {import('react').ReactElement} the registration form for the registration page
+ * @returns {ReactElement} the registration form for the registration page
  */
 export default function RegisterForm() {
   const [checked, setChecked] = useState(false);
+  const { setError } = useContext(ErrorContext);
+  const navigate = useNavigate();
 
-  const onSubmit = (e, type) => {
-    e.preventDefault()
-  }
+  const formRef = useRef(null);
+
+  const onSubmit = async (e, type) => {
+    e.preventDefault();
+    const rawFormData = new FormData(formRef.current);
+    rawFormData.set("type", type);
+    const res = await tryRegister(Object.fromEntries(rawFormData.entries()));
+    if (res instanceof Error) setError(res.message);
+    else navigate("/login");
+  };
 
   return (
-    <form className="flex w-96 flex-col gap-4 rounded-xl bg-zinc-800 p-8">
+    <form
+      className="flex w-96 flex-col gap-4 rounded-xl bg-zinc-800 p-8"
+      ref={formRef}
+    >
       <Field className="flex flex-col">
         <Label> First Name: </Label>
         <Input
@@ -67,7 +81,7 @@ export default function RegisterForm() {
       <Field className="flex flex-col">
         <Label className="block"> Repeat Password: </Label>
         <Input
-          name="repeat-password"
+          name="repeatPassword"
           type="password"
           required
           className="rounded bg-zinc-900 p-1"
@@ -81,7 +95,7 @@ export default function RegisterForm() {
           value="accept"
           className="transition-color mr-1.5 inline-block h-4 w-4 overflow-hidden rounded border border-zinc-100 bg-zinc-900 duration-100 data-[checked]:bg-amber-600"
         >
-          <CheckIcon className={`${checked? 'visible': 'invisible'}`}/>
+          <CheckIcon className={`${checked ? "visible" : "invisible"}`} />
         </Checkbox>
         <Label>
           I agree with the&nbsp;
@@ -98,7 +112,7 @@ export default function RegisterForm() {
         <Button
           type="submit"
           className="rounded-full border border-gray-100 bg-zinc-900 p-1 shadow-black duration-100 hover:not-active:-translate-y-0.5 hover:not-active:shadow flex-1/2"
-          onClick={(e) => onSubmit(e, 'teacher')}
+          onClick={(e) => onSubmit(e, "student")}
         >
           I am a student
         </Button>
@@ -106,7 +120,7 @@ export default function RegisterForm() {
         <Button
           type="submit"
           className="rounded-full border border-amber-500 bg-zinc-900 p-1 shadow-black duration-100 hover:not-active:-translate-y-0.5 hover:not-active:shadow flex-1/2 text-amber-500"
-          onClick={(e) => onSubmit(e, 'student')}
+          onClick={(e) => onSubmit(e, "teacher")}
         >
           I am a teacher
         </Button>
