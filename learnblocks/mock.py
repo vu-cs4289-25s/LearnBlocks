@@ -87,23 +87,22 @@ mock_rooster={ #currently unused
 
 mock_course = {
     "course_id": 1,
-    "course_name": "Introduction to Computer Science",
+    "course_name": "Introduction to Block",
     "course_description": "A beginner-friendly course introducing fundamental concepts in programming, algorithms, and data structures.",
-    "course_status": "active",
+    "status": "active",
     "badge_id": 1,
     "owner_id": 2,
 }
 
 mock_course2 = {
     "course_id": 2,
-    "course_name": "Calculus I",
+    "course_name": "Introduction to Python",
     "course_description": "An introductory course covering limits, derivatives, integrals, and their applications.",
-    "course_status": "active",
+    "status": "active",
     "badge_id": 2,
     "owner_id": 2,
 }
 
-# Optionally, store the courses in a list for easy access
 courses = [mock_course, mock_course2]
 mock_course_list={
     "courses": courses

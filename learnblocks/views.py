@@ -1,17 +1,20 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from .serializers import LearnBlocksSerializer,DynamicFieldsSerializer
-from .models import LearnBlocks
+from .serializers import *
+from .models import *
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,action
 
 from rest_framework import serializers
 from .mock import *
+
+from django.views.generic import ListView, DetailView
+from rest_framework import generics
 # Create your views here.
-class LearnBlocksView(viewsets.ModelViewSet):
-    serializer_class = LearnBlocksSerializer
-    queryset = LearnBlocks.objects.all()
+#class LearnBlocksView(viewsets.ModelViewSet):
+#    serializer_class = LearnBlocksSerializer
+#    queryset = LearnBlocks.objects.all()
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -104,14 +107,158 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], url_path='progress')
     def progress(self, request, pk=None):
         return Response(progress_list)
-    
+"""   
 class BadgeViewSet(viewsets.ModelViewSet):
     serializer_class=LearnBlocksSerializer
     def retrieve(self, request, pk=None):
         return Response(mock_badge)
     def create(self, request, *args, **kwargs):
         return Response(mock_badge)
+"""
 
+class BadgeListView(generics.ListCreateAPIView):
+    queryset = Badge.objects.all()
+    serializer_class = BadgeSerializer
+
+class BadgeDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Badge.objects.all()
+    serializer_class = BadgeSerializer
+    lookup_field = 'badge_id'
+
+
+class ClassListCreateView(generics.ListCreateAPIView):
+    queryset = Class.objects.all()
+    serializer_class = ClassSerializer
+
+class ClassRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Class.objects.all()
+    serializer_class = ClassSerializer
+    lookup_field = 'class_id'
+
+
+# --- ClassModuleAssignment ---
+class ClassModuleAssignmentListCreateView(generics.ListCreateAPIView):
+    queryset = ClassModuleAssignment.objects.all()
+    serializer_class = ClassModuleAssignmentSerializer
+
+class ClassModuleAssignmentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ClassModuleAssignment.objects.all()
+    serializer_class = ClassModuleAssignmentSerializer
+    lookup_field = 'assignment_id'
+
+
+# --- Course ---
+class CourseListCreateView(generics.ListCreateAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
+
+class CourseRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
+    lookup_field = 'course_id'
+
+
+# --- CourseClassMapping ---
+# Note: This model uses a composite key; we use the 'course' field as lookup.
+class CourseClassMappingListCreateView(generics.ListCreateAPIView):
+    queryset = CourseClassMapping.objects.all()
+    serializer_class = CourseClassMappingSerializer
+
+class CourseClassMappingRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = CourseClassMapping.objects.all()
+    serializer_class = CourseClassMappingSerializer
+    lookup_field = 'course'
+
+
+# --- Module ---
+class ModuleListCreateView(generics.ListCreateAPIView):
+    queryset = Module.objects.all()
+    serializer_class = ModuleSerializer
+
+class ModuleRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Module.objects.all()
+    serializer_class = ModuleSerializer
+    lookup_field = 'module_id'
+
+
+# --- ModuleCourseMapping ---
+# Note: Composite key; we use the 'course' field as lookup.
+class ModuleCourseMappingListCreateView(generics.ListCreateAPIView):
+    queryset = ModuleCourseMapping.objects.all()
+    serializer_class = ModuleCourseMappingSerializer
+
+class ModuleCourseMappingRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ModuleCourseMapping.objects.all()
+    serializer_class = ModuleCourseMappingSerializer
+    lookup_field = 'course'
+
+
+# --- Project ---
+class ProjectListCreateView(generics.ListCreateAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+
+class ProjectRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+    lookup_field = 'project_id'
+
+
+# --- User ---
+class UserListCreateView(generics.ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+class UserRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    lookup_field = 'user_id'
+
+
+# --- UserBadgeAchievement ---
+class UserBadgeAchievementListCreateView(generics.ListCreateAPIView):
+    queryset = UserBadgeAchievement.objects.all()
+    serializer_class = UserBadgeAchievementSerializer
+
+class UserBadgeAchievementRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = UserBadgeAchievement.objects.all()
+    serializer_class = UserBadgeAchievementSerializer
+    lookup_field = 'achievement_id'
+
+
+# --- UserClassRoster ---
+# Note: Uses 'user' as primary key (composite key workaround)
+class UserClassRosterListCreateView(generics.ListCreateAPIView):
+    queryset = UserClassRoster.objects.all()
+    serializer_class = UserClassRosterSerializer
+
+class UserClassRosterRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = UserClassRoster.objects.all()
+    serializer_class = UserClassRosterSerializer
+    lookup_field = 'user'
+
+
+# --- UserCourseEnrollment ---
+# Note: Uses 'user' as primary key (composite key workaround)
+class UserCourseEnrollmentListCreateView(generics.ListCreateAPIView):
+    queryset = UserCourseEnrollment.objects.all()
+    serializer_class = UserCourseEnrollmentSerializer
+
+class UserCourseEnrollmentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = UserCourseEnrollment.objects.all()
+    serializer_class = UserCourseEnrollmentSerializer
+    lookup_field = 'user'
+
+
+# --- UserModuleProgress ---
+class UserModuleProgressListCreateView(generics.ListCreateAPIView):
+    queryset = UserModuleProgress.objects.all()
+    serializer_class = UserModuleProgressSerializer
+
+class UserModuleProgressRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = UserModuleProgress.objects.all()
+    serializer_class = UserModuleProgressSerializer
+    lookup_field = 'progress_id'
 class ActivityViewSet(viewsets.ModelViewSet):
     serializer_class=LearnBlocksSerializer
     def create(self, request, *args, **kwargs):
