@@ -82,12 +82,12 @@ export default function Navbar({ navLinkData }) {
         </li>
         {Object.entries(links).map(([name, to], key) => {
           return (
-            <>
-              <Link key={key} to={to} onClick={() => setClosed(true)}>
+            <div key={key}>
+              <Link to={to} onClick={() => setClosed(true)}>
                 {name}
               </Link>
-              <hr className="text-zinc-600" />
-            </>
+              <hr  className="text-zinc-600" />
+            </div>
           );
         })}
         {!links.login ? (

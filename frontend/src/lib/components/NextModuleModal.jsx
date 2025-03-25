@@ -1,6 +1,7 @@
 import { Button } from '@headlessui/react';
 import { Link } from 'react-router-dom';
 import CourseWidget from './CourseWidget';
+import { useState } from 'react';
 
 const example = {
   name: 'conditionals',
@@ -12,7 +13,11 @@ const example = {
     { name: 'module 5', status: 'Locked', link: '' },
   ],
 };
+
+
 export default function NextModuleModal({ className }) {
+  const [module, setModule] = useState(null)
+
   return (
     <section className={className}>
       <h1 className="text-xl font-bold">Recent Course</h1>

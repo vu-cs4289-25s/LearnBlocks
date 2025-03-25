@@ -1,19 +1,20 @@
 import { ErrorContext } from "$lib/contexts/ErrorContext";
 import { tryGetProjects } from "$lib/utils/actions.mjs";
 import { Button } from "@headlessui/react";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 export default function GoToPlaygroundModal({ className }) {
   const [projectList, setProjectsList] = useState([]);
   const { setError } = useContext(ErrorContext);
 
+  useEffect(() => {
   tryGetProjects().then((res) => {
     if (res instanceof Error) {
       return setError(res.message);
     }
     setProjectsList(res);
-  });
+  })}, []);
 
   return (
     <section className={className}>
