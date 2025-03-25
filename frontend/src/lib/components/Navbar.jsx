@@ -86,7 +86,7 @@ export default function Navbar({ navLinkData }) {
               <Link to={to} onClick={() => setClosed(true)}>
                 {name}
               </Link>
-              <hr  className="text-zinc-600" />
+              <hr  className="text-zinc-600 md:hidden" />
             </div>
           );
         })}
