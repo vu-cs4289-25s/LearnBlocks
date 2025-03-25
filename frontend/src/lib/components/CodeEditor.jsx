@@ -20,7 +20,7 @@ const BlocklyComponent = props => {
           toolboxConfiguration={TOOLBOX}
           workspaceConfiguration={WORKSPACE_CONFIG}
           initialJson={null}
-          onJsonChange={props.setState}
+          onWorkspaceChange={workspace => props.setState(btop(workspace))}
         />
     );
 };
@@ -33,8 +33,7 @@ const PythonEditor = props => {
     }
 
     useEffect(() => {
-        const pythonCode = btop(props.state);
-        setState(pythonCode);
+        setState(props.state);
     }, []);  
 
     return (
@@ -56,7 +55,7 @@ export default function CodeEditor() {
         } else {
             setEditorMode('blockly');
         }
-    } 
+    }
 
     return (
         <div className='w-full h-full'>
