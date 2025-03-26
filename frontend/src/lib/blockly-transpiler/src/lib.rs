@@ -61,6 +61,21 @@ fn create_int_block(int: &BigInt) -> String {
     format!("{{\"type\":\"math_number\", \"fields\":{{\"NUM\":{}}}}}", int)
 }
 
+fn create_bin_op_block(left: String, op: String, right: String) -> String {
+    if op.as_str() == "mod" {
+        let input = format!(
+            "{{\"DIVIDEND\":{{\"block\":{}}},\"DIVISOR\":{{\"block\":{}}}}}", 
+            left, 
+            right
+        );
+        format!("{{\"type\":\"math_modulo\",\"inputs\":{}}}", input)
+    } else {
+        let input = format!("{{\"A\":{{\"block\":{}}},\"B\":{{\"block\":{}}}}}", left, right);
+        let fields = format!("{{ \"OP\": \"{}\" }}", op);
+        format!("{{\"type\":\"math_arithmetic\",\"inputs\":{},\"fields\":{}}}", input, fields)
+    }
+}
+
 fn parse_if(if_stmt: &ast::StmtIf) -> Result<String, String> {
     let test = parse_expr(&if_stmt.test);
     if test.is_err() {
@@ -82,6 +97,31 @@ fn parse_if(if_stmt: &ast::StmtIf) -> Result<String, String> {
             Ok(create_if_block(test.unwrap(), body.unwrap(), Some(orelse.unwrap())))
         }
     }
+}
+
+fn parse_expr_bin_op(expr_bin_op: &ast::ExprBinOp) -> Result<String, String> {
+    let left = parse_expr(&expr_bin_op.left);
+    if left.is_err() {
+        return Err(expr_bin_op.to_debug_string());
+    }
+
+    let right = parse_expr(&expr_bin_op.right);
+    if right.is_err() {
+        return Err(expr_bin_op.to_debug_string());
+    }
+
+    let op = match expr_bin_op.op {
+        ast::Operator::Add => String::from("ADD"),
+        ast::Operator::Sub => String::from("MINUS"),
+        ast::Operator::Mult => String::from("MULTIPLY"),
+        ast::Operator::Div => String::from("DIVIDE"),
+        ast::Operator::Pow => String::from("POWER"),
+        ast::Operator::FloorDiv => String::from("DIVIDE"),
+        ast::Operator::Mod => String::from("mod"),
+        _ => String::from("ADD")
+    };
+
+    Ok(create_bin_op_block(left.unwrap(), op, right.unwrap()))
 }
 
 fn parse_expr_call(expr_call: &ast::ExprCall) -> Result<String, String> {
@@ -166,6 +206,7 @@ fn parse_expr_name(expr_name: &ast::ExprName) -> Result<String, String> {
 
 fn parse_expr(expr: &ast::Expr) -> Result<String, String> {
     match expr {
+        ast::Expr::BinOp(expr_bin_op) => parse_expr_bin_op(&expr_bin_op),
         ast::Expr::Call(expr_call) => parse_expr_call(&expr_call),
         ast::Expr::Compare(expr_compare) => parse_expr_compare(&expr_compare),
         ast::Expr::Constant(expr_const) => parse_expr_const(&expr_const),
@@ -202,7 +243,7 @@ fn join_statements(stmts: &Vec<ast::Stmt>) -> Result<String, String> {
                                       .collect();
     let res: Result<Vec<_>, _> = raw_proc_stmts.into_iter().collect();
     if res.is_err() {
-        return Err(String::from("invalid statements"));
+        return Err(res.to_debug_string());
     }
     let mut proc_stmts = res.unwrap();
     
