@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { BlocklyWorkspace } from 'react-blockly';
+import * as Blockly from 'blockly/core';
 import { btop, ptob } from '$lib/utils/transpile.js';
 import { TOOLBOX } from '$lib/utils/blocklyToolbox.js';
 
@@ -60,12 +61,19 @@ export default function CodeEditor() {
     }
 
     const updateBlocklyState = workspace => {
+        console.log(Blockly.serialization.workspaces.save(workspace));
         const transpiledCode = btop(workspace);
         setGlobalState(transpiledCode);
     }
 
-    const updatePythonState = python_source => {
-       //TODO
+    const updatePythonState = pythonSource => {
+        console.log('hello');
+        const parsedSource = ptob(pythonSource);
+        console.log(parsedSource);
+        console.log(parsedSource['error']);
+       
+        if (!parsedSource['error'])
+            setGlobalState(pythonSource);
     }
 
     return (
