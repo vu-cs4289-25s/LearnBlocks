@@ -1,5 +1,6 @@
 use rustpython_parser::{lexer::lex, Mode, parse_tokens, ast};
 use malachite_base::strings::ToDebugString;
+use malachite_bigint::BigInt;
 use wasm_bindgen::prelude::*;
 
 fn insert_next_block(cur: String, insert: String) -> String {
@@ -56,8 +57,8 @@ fn create_text_block(text: String) -> String {
     format!("{{ \"type\": \"text\", \"fields\": {} }}", fields)
 }
 
-create_int_block(int: BigInt) -> String {
-    let fields = format
+fn create_int_block(int: &BigInt) -> String {
+    format!("{{\"type\":\"math_number\", \"fields\":{{\"NUM\":{}}}}}", int)
 }
 
 fn parse_if(if_stmt: &ast::StmtIf) -> Result<String, String> {
@@ -153,7 +154,7 @@ fn parse_expr_const(expr_const: &ast::ExprConstant) -> Result<String, String> {
     match value {
         ast::Constant::Bool(c) => Ok(create_boolean_block(*c)),
         ast::Constant::Str(c) => Ok(c.clone()),
-        ast::Constant::Int(c) => Ok(create_int_block(*c)),
+        ast::Constant::Int(c) => Ok(create_int_block(c)),
         _ => Err(value.to_debug_string())
     }
 }
@@ -238,6 +239,11 @@ pub fn ptob_wasm(python_source: &str) -> String {
             let stmts = join_statements(&raw_module.unwrap().body);
             if stmts.is_ok() {
                 return stmts.unwrap();
+            } else {
+                return format!(
+                    "{{\"error\": \"cannot parse\", \"details\": {}}}", 
+                    stmts.to_debug_string()
+                );
             }
         }
     }
