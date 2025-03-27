@@ -76,6 +76,12 @@ fn create_bin_op_block(left: String, op: String, right: String) -> String {
     }
 }
 
+fn create_bool_op_block(left: String, op: String, right: String) -> String {
+    let input = format!("{{\"A\":{{\"block\":{}}},\"B\":{{\"block\":{}}}}}", left, right);
+    let fields = format!("{{ \"OP\": \"{}\" }}", op);
+    format!("{{\"type\":\"logic_operation\",\"inputs\":{},\"fields\":{}}}", input, fields)
+}
+
 fn parse_if(if_stmt: &ast::StmtIf) -> Result<String, String> {
     let test = parse_expr(&if_stmt.test);
     if test.is_err() {
@@ -122,6 +128,21 @@ fn parse_expr_bin_op(expr_bin_op: &ast::ExprBinOp) -> Result<String, String> {
     };
 
     Ok(create_bin_op_block(left.unwrap(), op, right.unwrap()))
+}
+
+fn parse_expr_bool_op(expr_bool_op: &ast::ExprBoolOp) -> Result<String, String> {
+    let op = match expr_bool_op.op {
+        ast::BoolOp::And => String::from("AND"),
+        ast::BoolOp::Or => String::from("OR")
+    };
+
+    if expr_bool_op.values.len() < 2 {
+        return Err(expr_bool_op.to_debug_string());
+    }
+    let left = parse_expr(&expr_bool_op.values[0]);
+    let right = parse_expr(&expr_bool_op.values[1]);
+    
+    Ok(create_bool_op_block(left.unwrap(), op, right.unwrap()))
 }
 
 fn parse_expr_call(expr_call: &ast::ExprCall) -> Result<String, String> {
@@ -207,6 +228,7 @@ fn parse_expr_name(expr_name: &ast::ExprName) -> Result<String, String> {
 fn parse_expr(expr: &ast::Expr) -> Result<String, String> {
     match expr {
         ast::Expr::BinOp(expr_bin_op) => parse_expr_bin_op(&expr_bin_op),
+        ast::Expr::BoolOp(expr_bool_op) => parse_expr_bool_op(&expr_bool_op),
         ast::Expr::Call(expr_call) => parse_expr_call(&expr_call),
         ast::Expr::Compare(expr_compare) => parse_expr_compare(&expr_compare),
         ast::Expr::Constant(expr_const) => parse_expr_const(&expr_const),
