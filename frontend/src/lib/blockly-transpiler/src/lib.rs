@@ -82,6 +82,16 @@ fn create_bool_op_block(left: String, op: String, right: String) -> String {
     format!("{{\"type\":\"logic_operation\",\"inputs\":{},\"fields\":{}}}", input, fields)
 }
 
+fn create_if_exp_block(test: String, body: String, orelse: String) -> String {
+    let inputs  = format!(
+        "{{\"IF\":{{\"block\":{}}},\"THEN\":{{\"block\":{}}},\"ELSE\":{{\"block\":{}}}}}", 
+        test, 
+        body, 
+        test
+    );
+    format!("{{\"type\":\"logic_ternary\",\"inputs\":{}}}", inputs)
+}
+
 fn parse_if(if_stmt: &ast::StmtIf) -> Result<String, String> {
     let test = parse_expr(&if_stmt.test);
     if test.is_err() {
@@ -221,6 +231,16 @@ fn parse_expr_const(expr_const: &ast::ExprConstant) -> Result<String, String> {
     }
 }
 
+fn parse_expr_if_exp(expr_if_exp: &ast::ExprIfExp) -> Result<String, String> {
+    let test = parse_expr(&expr_if_exp.test);
+    let body = parse_expr(&expr_if_exp.body);
+    let orelse = parse_expr(&expr_if_exp.orelse);
+    if test.is_err() || body.is_err() || orelse.is_err() {
+        return Err(expr_if_exp.to_debug_string());
+    }
+    Ok(create_if_exp_block(test.unwrap(), body.unwrap(), orelse.unwrap()))
+}
+
 fn parse_expr_name(expr_name: &ast::ExprName) -> Result<String, String> {
     let identifier = expr_name.id.as_str();
     Ok(String::from(identifier))
@@ -247,6 +267,7 @@ fn parse_expr(expr: &ast::Expr) -> Result<String, String> {
         ast::Expr::Call(expr_call) => parse_expr_call(&expr_call),
         ast::Expr::Compare(expr_compare) => parse_expr_compare(&expr_compare),
         ast::Expr::Constant(expr_const) => parse_expr_const(&expr_const),
+        ast::Expr::IfExp(expr_if_exp) => parse_expr_if_exp(&expr_if_exp),
         ast::Expr::Name(expr_name) => parse_expr_name(&expr_name),
         ast::Expr::UnaryOp(expr_unary_op) => parse_expr_unary_op(&expr_unary_op),
         _ => Err(expr.to_debug_string())
