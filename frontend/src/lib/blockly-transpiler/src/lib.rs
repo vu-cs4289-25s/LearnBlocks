@@ -225,6 +225,20 @@ fn parse_expr_name(expr_name: &ast::ExprName) -> Result<String, String> {
     Ok(String::from(identifier))
 }
 
+fn parse_expr_unary_op(expr_unary_op: &ast::ExprUnaryOp) -> Result<String, String> {
+    let operand = parse_expr(&expr_unary_op.operand);
+    if operand.is_err() {
+        return Err(expr_unary_op.to_debug_string())
+    }
+
+    if let ast::UnaryOp::Not = expr_unary_op.op {
+        let input = format!("{{\"BOOL\":{{\"block\":{}}}}}", operand.unwrap());
+        Ok(format!("{{\"type\":\"logic_negate\",\"inputs\": {}}}", input))
+    } else {
+        Err(expr_unary_op.to_debug_string())
+    }
+}
+
 fn parse_expr(expr: &ast::Expr) -> Result<String, String> {
     match expr {
         ast::Expr::BinOp(expr_bin_op) => parse_expr_bin_op(&expr_bin_op),
@@ -233,6 +247,7 @@ fn parse_expr(expr: &ast::Expr) -> Result<String, String> {
         ast::Expr::Compare(expr_compare) => parse_expr_compare(&expr_compare),
         ast::Expr::Constant(expr_const) => parse_expr_const(&expr_const),
         ast::Expr::Name(expr_name) => parse_expr_name(&expr_name),
+        ast::Expr::UnaryOp(expr_unary_op) => parse_expr_unary_op(&expr_unary_op),
         _ => Err(expr.to_debug_string())
     }
 }
