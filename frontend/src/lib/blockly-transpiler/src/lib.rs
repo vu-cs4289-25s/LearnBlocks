@@ -216,6 +216,7 @@ fn parse_expr_const(expr_const: &ast::ExprConstant) -> Result<String, String> {
         ast::Constant::Bool(c) => Ok(create_boolean_block(*c)),
         ast::Constant::Str(c) => Ok(c.clone()),
         ast::Constant::Int(c) => Ok(create_int_block(c)),
+        ast::Constant::None => Ok(String::from("{\"type\":\"logic_null\"}")),
         _ => Err(value.to_debug_string())
     }
 }
