@@ -69,3 +69,25 @@ export const tryGetProjects = async () => {
     return new Error(`Failed to get Projects List: ${err}`)    
   }
 }
+
+export const tryGetCourses = async () => {
+  try {
+   const res = await fetch(`${import.meta.env.VITE_CLOUD}/api/course/`) 
+   const json = await res.json()
+   return json
+  }
+  catch(err) {
+    return new Error(`Failed to get Courses List: ${err}`)    
+  }
+}
+
+export const tryGetModules = async () => {
+  try {
+   const res = await fetch(`${import.meta.env.VITE_CLOUD}/api/module/`) 
+   const json = await res.json()
+   return json
+  }
+  catch(err) {
+    return new Error(`Failed to get Modules List: ${err}`)    
+  }
+}

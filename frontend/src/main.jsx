@@ -16,8 +16,6 @@ import TeacherHomePage from "$pages/TeacherHomePage";
 import TeacherClassesPage from "$pages/TeacherClassesPage";
 import TeacherAssignmentsPage from "$pages/TeacherAssignmentsPage";
 
-import { useState } from "react"; 
-
 const root = document.getElementById("root");
 
 if (!root) {
