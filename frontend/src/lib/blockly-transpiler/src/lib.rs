@@ -87,9 +87,27 @@ fn create_if_exp_block(test: String, body: String, orelse: String) -> String {
         "{{\"IF\":{{\"block\":{}}},\"THEN\":{{\"block\":{}}},\"ELSE\":{{\"block\":{}}}}}", 
         test, 
         body, 
-        test
+        orelse
     );
     format!("{{\"type\":\"logic_ternary\",\"inputs\":{}}}", inputs)
+}
+
+fn create_while_block(test: String, body: String) -> String {
+    let input = format!("{{\"BOOL\":{{\"block\":{}}},\"DO\":{{\"block\":{}}} }}", test, body);
+    format!("{{\"type\":\"controls_whileUntil\",\"inputs\":{}}}", input)
+}
+
+fn parse_while(while_stmt: &ast::StmtWhile) -> Result<String, String> {
+    if while_stmt.orelse.len() > 0 {
+        return Err(String::from("does not support else statements in while loops"));
+    }
+
+    let test = parse_expr(&while_stmt.test);
+    let body = join_statements(&while_stmt.body);
+    if test.is_err() || body.is_err() {
+        return Err(while_stmt.to_debug_string());
+    }
+    Ok(create_while_block(test.unwrap(), body.unwrap()))
 }
 
 fn parse_if(if_stmt: &ast::StmtIf) -> Result<String, String> {
@@ -283,7 +301,7 @@ fn parse_statement(stmt: &ast::Stmt) -> Result<String, String> {
         ast::Stmt::AugAssign(_) => Ok(String::from("{aug assign}")),
         ast::Stmt::AnnAssign(_) => Ok(String::from("{ann assign}")),
         ast::Stmt::For(_) => Ok(String::from("{for}")),
-        ast::Stmt::While(_) => Ok(String::from("{while}")),
+        ast::Stmt::While(s) => parse_while(&s),
         ast::Stmt::If(s) => parse_if(&s),
         ast::Stmt::With(_) => Ok(String::from("{with}")),
         ast::Stmt::Match(_) => Ok(String::from("{match}")),
