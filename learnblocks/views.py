@@ -11,6 +11,8 @@ from .mock import *
 
 from django.views.generic import ListView, DetailView
 from rest_framework import generics
+
+from rest_framework.generics import ListAPIView
 # Create your views here.
 #class LearnBlocksView(viewsets.ModelViewSet):
 #    serializer_class = LearnBlocksSerializer
@@ -264,6 +266,62 @@ class ActivityViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         return Response(mock_activity)
 
+class UserProjectsListView(ListAPIView):
+    serializer_class = ProjectSerializer
+
+    def get_queryset(self):
+        userid = self.kwargs.get('userid')
+        return Project.objects.filter(user_id=userid)
+
+
+class UserBadgesListView(ListAPIView):
+    serializer_class = BadgeSerializer
+
+    def get_queryset(self):
+        userid = self.kwargs.get('userid')
+        # Filter badges that are associated with the user via UserBadgeAchievement
+        return Badge.objects.filter(userbadgeachievement__user_id=userid)
+
+
+class UserCoursesListView(ListAPIView):
+    """
+    GET /courses/user/{ownerid}/
+    Returns all courses where Course.owner_id matches the given ownerid.
+    """
+    serializer_class = CourseSerializer
+
+    def get_queryset(self):
+        ownerid = self.kwargs.get('ownerid')
+        return Course.objects.filter(owner_id=ownerid)
+
+
+class ClassCoursesListView(ListAPIView):
+    """
+    GET /courses/class/{classid}/
+    Returns all courses associated with a specific class.
+    This uses the reverse relation from Course to CourseClassMapping,
+    filtering on CourseClassMapping.class_field_id.
+    """
+    serializer_class = CourseSerializer
+
+    def get_queryset(self):
+        classid = self.kwargs.get('classid')
+        return Course.objects.filter(courseclassmapping__class_field_id=classid)
+
+
+class UserModulesListView(ListAPIView):
+    """
+    GET /modules/user/{ownerid}/
+    Returns all modules where Module.owner_id matches the given ownerid.
+    """
+    serializer_class = ModuleSerializer
+
+    def get_queryset(self):
+        ownerid = self.kwargs.get('ownerid')
+        return Module.objects.filter(owner_id=ownerid)
+
+
+#Not in use
 class ClassViewSet(viewsets.ModelViewSet):
     serializer_class=DynamicFieldsSerializer
     def get_queryset(self):

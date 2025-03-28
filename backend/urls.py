@@ -87,4 +87,21 @@ urlpatterns = [
     # UserModuleProgress endpoints:
     path('api/user-module-progresses/', views.UserModuleProgressListCreateView.as_view(), name='usermoduleprogress-list'),
     path('api/user-module-progresses/<int:progress_id>/', views.UserModuleProgressRetrieveUpdateDestroyView.as_view(), name='usermoduleprogress-detail'),
+
+
+    # Project associated to specific user
+    path('api/projects/user/<int:userid>/', views.UserProjectsListView.as_view(), name='user_projects_list'),
+
+    # Badges specific user
+    path('api/badges/user/<int:userid>/', views.UserBadgesListView.as_view(), name='user_badges_list'),
+
+    # Courses search by owner
+    path('api/courses/user/<int:ownerid>/', views.UserCoursesListView.as_view(), name='user_courses_list'),
+    
+    # Courses search by class
+    path('api/courses/class/<int:classid>/', views.ClassCoursesListView.as_view(), name='class_courses_list'),
+
+    # Modules search by owner
+    path('api/modules/user/<int:ownerid>/', views.UserModulesListView.as_view(), name='user_modules_list'),
+
 ]
