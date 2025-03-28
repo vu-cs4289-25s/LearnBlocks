@@ -25,6 +25,10 @@ urlpatterns = [
     path('badges/<uuid:badge_id>/',
          views.BadgeDetailView.as_view(), name='badge-detail'),
 
+    path('badges/', views.BadgeListView.as_view(), name='badge-list'),
+    path('badges/<uuid:badge_id>/',
+         views.BadgeDetailView.as_view(), name='badge-detail'),
+
     # Class endpoints:
     path('classes/', views.ClassListCreateView.as_view(), name='class-list'),
     path('classes/<uuid:class_id>/',
@@ -78,13 +82,13 @@ urlpatterns = [
     # UserClassRoster endpoints:
     path('user-class-rosters/', views.UserClassRosterListCreateView.as_view(),
          name='userclassroster-list'),
-    path('user-class-rosters/<string:username>/',
+    path('user-class-rosters/<str:username>/',
          views.UserClassRosterRetrieveUpdateDestroyView.as_view(), name='userclassroster-detail'),
 
     # UserCourseEnrollment endpoints:
     path('user-course-enrollments/', views.UserCourseEnrollmentListCreateView.as_view(),
          name='usercourseenrollment-list'),
-    path('user-course-enrollments/<int:username>/',
+    path('user-course-enrollments/<str:username>/',
          views.UserCourseEnrollmentRetrieveUpdateDestroyView.as_view(), name='usercourseenrollment-detail'),
 
     # UserModuleProgress endpoints:
