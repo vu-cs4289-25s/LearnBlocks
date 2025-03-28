@@ -16,10 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from rest_framework.authtoken.views import obtain_auth_token
 from learnblocks import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    path('login/', obtain_auth_token),
+    path('whoami/', views.WhoAmIView.as_view(), name='who-am-i'),
+
 
     path('badges/', views.BadgeListView.as_view(), name='badge-list'),
     path('badges/<uuid:badge_id>/',

@@ -12,7 +12,18 @@ from .serializers import (BadgeSerializer, ClassSerializer,
                           UserCourseEnrollmentSerializer,
                           UserModuleProgressSerializer)
 
-from rest_framework import generics
+from rest_framework import generics, views, authentication, permissions 
+from rest_framework.response import Response
+
+
+# --- Authentication ---
+class WhoAmIView(views.APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
 
 
 class BadgeListView(generics.ListCreateAPIView):
@@ -39,6 +50,7 @@ class ClassRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
 # --- ClassModuleAssignment ---
 class ClassModuleAssignmentListCreateView(generics.ListCreateAPIView):
+
     queryset = ClassModuleAssignment.objects.all()
     serializer_class = ClassModuleAssignmentSerializer
 

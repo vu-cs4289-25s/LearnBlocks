@@ -7,20 +7,21 @@
 # Feel free to rename the models, but don't rename db_table values or field names.
 
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
+from .managers import CustomUserManager
 from .enums import enums
 import uuid
 
 
-class User(models.Model):
+class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(unique=True, max_length=50)
     email = models.CharField(unique=True, max_length=255)
-    password_hash = models.TextField()
 
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
-    week_activity = models.BinaryField(max_length=1, default=[0])
+    week_activity = models.BinaryField(max_length=1, default=b'\x00')
     role = models.TextField(choices=enums.UserRole,
                             default=enums.UserRole.STUDENT)
 
@@ -41,8 +42,14 @@ class User(models.Model):
                                                  related_name='users',
                                                  related_query_name='user')
 
+    objects = CustomUserManager()
+
+    USERNAME_FIELD = "username"
+    REQUIRED_FIELDS = ['email', 'role']
+
     class Meta:
         db_table = 'user'
+
 
 
 class Class(models.Model):

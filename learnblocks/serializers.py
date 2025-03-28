@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 import datetime
 from .models import (Badge, Class, ClassModuleAssignment, Course,
@@ -85,16 +86,20 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    password_hash = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, required=True,
+                                     validators=[validate_password])
 
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['username', 'email', 'password',
+                  'first_name', 'last_name', 'role']
 
     def create(self, validated_data):
-        if not validated_data.get('created_at'):
-            validated_data['created_at'] = timezone.now()
-        return super().create(validated_data)
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
 
 class UserBadgeAchievementSerializer(serializers.ModelSerializer):
