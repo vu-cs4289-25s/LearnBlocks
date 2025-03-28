@@ -84,7 +84,7 @@ urlpatterns = [
     # UserCourseEnrollment endpoints:
     path('user-course-enrollments/', views.UserCourseEnrollmentListCreateView.as_view(),
          name='usercourseenrollment-list'),
-    path('user-course-enrollments/<string:username>/',
+    path('user-course-enrollments/<int:username>/',
          views.UserCourseEnrollmentRetrieveUpdateDestroyView.as_view(), name='usercourseenrollment-detail'),
 
     # UserModuleProgress endpoints:
