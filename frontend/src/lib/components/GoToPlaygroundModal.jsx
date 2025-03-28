@@ -1,33 +1,26 @@
-import { Button } from '@headlessui/react';
-import { Link } from 'react-router-dom';
+import { ErrorContext } from "$lib/contexts/ErrorContext";
+import { tryGetProjects } from "$lib/utils/actions.mjs";
+import { Button } from "@headlessui/react";
+import { useContext, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
-const example = [
-  'NebulaVision',
-  'QuantumForge',
-  'AetherFlow',
-  'ChronoSync',
-  'TitanPulse',
-  'EclipseGrid',
-  'CipherNest',
-  'NovaPath',
-  'SpectraCore',
-  'ZenithTrack',
-  'HorizonByte',
-  'OmniLink',
-  'EchoDrive',
-  'OrionSphere',
-  'FusionStack',
-  'CelestialNode',
-  'HyperVortex',
-  'CyberHorizon',
-];
+export default function GoToPlaygroundModal({ className }) {
+  const [projectList, setProjectsList] = useState([]);
+  const { setError } = useContext(ErrorContext);
 
-export default function GoToPlaygroundModal({className}) {
+  useEffect(() => {
+  tryGetProjects().then((res) => {
+    if (res instanceof Error) {
+      return setError(res.message);
+    }
+    setProjectsList(res);
+  })}, []);
+
   return (
     <section className={className}>
       <section className="row-span-2 flex flex-col items-center justify-center gap-4">
         <h1 className="text-xl font-bold underline">Playground</h1>
-        <Link className="transition-color w-1/2 rounded-full border-2 border-amber-700 shadow-amber-600/50 duration-100 hover:bg-amber-700 hover:shadow active:bg-amber-800 text-center overflow-auto">
+        <Link to={'/playground'} className="transition-color w-1/2 rounded-full border-2 border-amber-700 shadow-amber-600/50 duration-100 hover:bg-amber-700 hover:shadow active:bg-amber-800 text-center overflow-auto">
           New
         </Link>
       </section>
@@ -36,14 +29,15 @@ export default function GoToPlaygroundModal({className}) {
         <h1 className="sticky top-0 bg-zinc-900">
           Recent Projects <hr className="text-zinc-700" />
         </h1>
-        {example.map((project, key) => {
+        {projectList.map((project, key) => {
           return (
-            <Button
-              className="rounded bg-zinc-800 p-1 text-sm text-zinc-500 hover:not-active:text-zinc-100"
+            <Link
+              to={`/playground/${project.project_id}`}
+              className="rounded bg-zinc-800 p-1 text-sm text-zinc-500 hover:not-active:text-zinc-100 flex flex-row justify-center"
               key={key}
             >
-              {project}
-            </Button>
+              {project.project_name}
+            </Link>
           );
         })}
       </section>

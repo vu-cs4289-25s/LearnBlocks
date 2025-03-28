@@ -1,21 +1,20 @@
-import Nav from './Navbar';
-
-const role = 's'
-
-const allNavs = {
-  login: '/login',
-  register: '/register',
-  catalog: '/catalog',
-  playground: '/playground',
-  home: `/${role}/home`,
-  courses: `/${role}/courses`,
-}
+import { useState } from "react";
+import ErrorBar from "./ErrorBar";
+import Navbar from "./Navbar";
+import { AuthUserContext, ErrorContext } from "$lib/contexts/ErrorContext";
 
 export default function Layout({ children }) {
+  const [error, setError] = useState(null);
+  const [authUser, setAuthUser] = useState(null);
   return (
     <main className="flex min-h-screen flex-col dark:bg-zinc-900 dark:text-zinc-100">
-      <Nav />
-      {children}
+      <ErrorContext.Provider value={{ error, setError }}>
+        <AuthUserContext.Provider value={{ authUser, setAuthUser }}>
+          <Navbar />
+          <ErrorBar />
+          {children}
+        </AuthUserContext.Provider>
+      </ErrorContext.Provider>
     </main>
   );
 }
