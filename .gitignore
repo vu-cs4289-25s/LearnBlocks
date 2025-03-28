@@ -2,9 +2,10 @@
 frontend/node_modules
 frontend/package-lock.json
 frontend/dist
-/frontend/build
+frontend/build
 *.swp
 .venv
 .env*
 frontend/src/lib/blockly-transpiler/target
 **/__pycache__/
+learnblocks/migrations
