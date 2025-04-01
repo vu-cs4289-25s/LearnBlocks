@@ -1,173 +1,104 @@
-from django.shortcuts import render
-from rest_framework import viewsets
-from .serializers import *
-from .models import *
+from .models import (Badge, Class, ClassModuleAssignment, Course,
+                     ClassCourseMapping, Module, CourseModuleMapping,
+                     Project, User, UserBadgeAchievement, UserClassRoster,
+                     UserCourseEnrollment, UserModuleProgress)
+
+from .serializers import (BadgeSerializer, ClassSerializer,
+                          ClassModuleAssignmentSerializer, CourseSerializer,
+                          ClassCourseMappingSerializer, ModuleSerializer,
+                          CourseModuleMappingSerializer, ProjectSerializer,
+                          UserSerializer, UserBadgeAchievementSerializer,
+                          UserClassRosterSerializer,
+                          UserCourseEnrollmentSerializer,
+                          UserModuleProgressSerializer)
+
+from rest_framework import generics, views, authentication, exceptions
+from .permissions import permissions
+from .enums import RosterRole, UserRole, CourseVisibility
 
 from rest_framework.response import Response
-from rest_framework.decorators import api_view,action
 
-from rest_framework import serializers
-from .mock import *
-
-from django.views.generic import ListView, DetailView
-from rest_framework import generics
-# Create your views here.
-#class LearnBlocksView(viewsets.ModelViewSet):
-#    serializer_class = LearnBlocksSerializer
-#    queryset = LearnBlocks.objects.all()
+from django.db.models import Q
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    """Handles user creation, retrieval, and updates"""
-    """
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Require login
-    """
-    serializer_class=LearnBlocksSerializer
+# --- Authentication ---
+class WhoAmIView(views.APIView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
-    def retrieve(self, request, pk=None):
-        """GET: Fetch user details by user_id"""
-        """
-        try:
-            user = User.objects.get(pk=pk)
-            serializer = self.get_serializer(user)
-            return Response(serializer.data)
-        except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-        """
-        return Response(mock_user)
-    
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
 
-    def create(self, request):
-        """POST: Create a new user"""
-        """
-        data = request.data.copy()
-        data["password"] = make_password(data["password"])  # Hash password before saving
-        serializer = self.get_serializer(data=data)
 
-        if serializer.is_valid():
-            user = serializer.save()
-            return Response({
-                "user_id": user.id,
-                "username": user.username,
-                "email": user.email
-            }, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        """
-        return Response(mock_user)
-
-    def update(self, request, pk=None):
-        """PUT: Update user details"""
-        """
-        try:
-            user = User.objects.get(pk=pk)
-            data = request.data.copy()
-            
-            # Hash the password if it's being updated
-            if "password" in data and data["password"]:
-                data["password"] = make_password(data["password"])
-
-            serializer = self.get_serializer(user, data=data, partial=True)
-            if serializer.is_valid():
-                user = serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-        """
-        return Response(mock_user)
-    
-    @action(detail=True, methods=['get'], url_path='badge')
-    def badge(self, request, pk=None):
-        """
-        GET /user/:user_id/badge/
-        Returns the list of badges associated with the user.
-        """
-        """
-        user = self.get_object()  # Gets the User object with id=pk
-        badges = Badge.objects.filter(student=user)
-        serializer = BadgeSerializer(badges, many=True)
-        return Response({"badges": serializer.data})
-        """
-        return Response(mock_badge_list)
-    
-    @action(detail=True, methods=['get'], url_path='activity')
-    def activity(self, request, pk=None):  
-        return Response(mock_activity_list)
-    
-    @action(detail=True, methods=['get'], url_path='class')
-    def get_class(self, request, pk=None):  
-        return Response(mock_class_list)
-    @action(detail=True, methods=['post'], url_path='add_class')
-    def add_class(self, request, pk=None):
-        return Response(mock_class)
-    @action(detail=True, methods=['get'], url_path='progress')
-    def progress(self, request, pk=None):
-        return Response(progress_list)
-"""   
-class BadgeViewSet(viewsets.ModelViewSet):
-    serializer_class=LearnBlocksSerializer
-    def retrieve(self, request, pk=None):
-        return Response(mock_badge)
-    def create(self, request, *args, **kwargs):
-        return Response(mock_badge)
-"""
-
-class BadgeListView(generics.ListCreateAPIView):
+# --- Badges ---
+class BadgeListCreateView(generics.ListCreateAPIView):
     queryset = Badge.objects.all()
     serializer_class = BadgeSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
+        return [permissions.IsAuthenticated()]
+
 
 class BadgeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Badge.objects.all()
     serializer_class = BadgeSerializer
     lookup_field = 'badge_id'
 
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
+        return [permissions.IsAuthenticated()]
+
 
 class ClassListCreateView(generics.ListCreateAPIView):
-    queryset = Class.objects.all()
     serializer_class = ClassSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated(),
+                    permissions.IsTeacherOrAdminUser()]
+        return [permissions.IsAuthenticated()]
+
+    def get_queryset(self):
+        if self.request.user.role == UserRole.ADMIN:
+            return Class.objects.all()
+        else:
+            return Class.objects.filter(member=self.request.user)
+
+    def perform_create(self, serializer):
+        class_obj = serializer.save()
+        class_obj.members.add(self.request.user)
+
 
 class ClassRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Class.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = ClassSerializer
+    queryset = Class.objects.all()
     lookup_field = 'class_id'
 
+    def get_object(self):
+        obj = super().get_object()
 
-# --- ClassModuleAssignment ---
-class ClassModuleAssignmentListCreateView(generics.ListCreateAPIView):
-    queryset = ClassModuleAssignment.objects.all()
-    serializer_class = ClassModuleAssignmentSerializer
+        is_owner = UserClassRoster.objects.filter(
+            user=self.request.user,
+            class_field=obj,
+            role=RosterRole.OWNER
+        ).exists()
+        is_participant = UserClassRoster.objects.filter(
+            user=self.request.user,
+            class_field=obj,
+            role=RosterRole.PARTICIPANT
+        ).exists()
+        is_get = self.request.method == 'GET'
 
-class ClassModuleAssignmentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = ClassModuleAssignment.objects.all()
-    serializer_class = ClassModuleAssignmentSerializer
-    lookup_field = 'assignment_id'
-
-
-# --- Course ---
-class CourseListCreateView(generics.ListCreateAPIView):
-    queryset = Course.objects.all()
-    serializer_class = CourseSerializer
-
-class CourseRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Course.objects.all()
-    serializer_class = CourseSerializer
-    lookup_field = 'course_id'
-
-
-# --- CourseClassMapping ---
-# Note: This model uses a composite key; we use the 'course' field as lookup.
-class CourseClassMappingListCreateView(generics.ListCreateAPIView):
-    queryset = CourseClassMapping.objects.all()
-    serializer_class = CourseClassMappingSerializer
-
-class CourseClassMappingRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = CourseClassMapping.objects.all()
-    serializer_class = CourseClassMappingSerializer
-    lookup_field = 'course'
+        if not (is_get and is_participant) and not (is_owner):
+            raise exceptions.PermissionDenied(
+                "You must be an owner of this class to modify it.")
+        return obj
 
 
 # --- Module ---
@@ -175,28 +106,225 @@ class ModuleListCreateView(generics.ListCreateAPIView):
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
 
+
 class ModuleRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Module.objects.all()
     serializer_class = ModuleSerializer
     lookup_field = 'module_id'
 
 
-# --- ModuleCourseMapping ---
-# Note: Composite key; we use the 'course' field as lookup.
-class ModuleCourseMappingListCreateView(generics.ListCreateAPIView):
-    queryset = ModuleCourseMapping.objects.all()
-    serializer_class = ModuleCourseMappingSerializer
+# --- Course ---
+class CourseListCreateView(generics.ListCreateAPIView):
+    serializer_class = CourseSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-class ModuleCourseMappingRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = ModuleCourseMapping.objects.all()
-    serializer_class = ModuleCourseMappingSerializer
-    lookup_field = 'course'
+    def get_queryset(self):
+        user = self.request.user
+        if (user.role != UserRole.Admin):
+            return Course.objects.all()
+        return Course.objects.filter(Q(owner=user) or Q(visibility=CourseVisibility.PUBLIC))
+
+    def perform_create(self, serializer):
+        if (self.request.user.role != UserRole.ADMIN):
+            raise exceptions.PermissionDenied(
+                "You are not authorized to add a course")
+        serializer.save(owner=self.request.user)
+
+
+class CourseRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CourseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Course.objects.all()
+
+    def get_object(self):
+        course_id = self.kwargs.get('course_id')
+        assignment_obj = Course.objects.get(course_id=course_id)
+        is_get = self.request.method == 'GET'
+        is_admin = self.request.user.role == UserRole.ADMIN
+
+        if not (is_get) and not (is_admin):
+            raise exceptions.PermissionDenied(
+                "You are not authorized to modify courses.")
+        return assignment_obj
+
+
+# --- ClassModuleAssignment ---
+class ClassModuleAssignmentListCreateView(generics.ListCreateAPIView):
+    serializer_class = ClassModuleAssignmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        class_id = self.kwargs.get('class_id')
+        if not class_id:
+            raise exceptions.ParseError(
+                "Missing required URL parameter: class_id")
+        return ClassModuleAssignment.objects.filter(class_field=class_id)
+
+    def perform_create(self, serializer):
+        class_id = self.kwargs.get('class_id')
+        class_obj = Class.objects.get(class_id=class_id)
+        is_owner = UserClassRoster.objects.filter(
+            user=self.request.user,
+            class_field=class_obj,
+            role=RosterRole.OWNER
+        ).exists()
+        if not is_owner:
+            raise exceptions.PermissionDenied(
+                "You must be an owner of this class to add a module.")
+        serializer.save(class_field=class_obj)
+
+
+class ClassModuleAssignmentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ClassModuleAssignmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        class_id = self.kwargs.get('class_id')
+        if not class_id:
+            raise exceptions.ParseError(
+                "Missing required URL parameter: class_id")
+        return ClassModuleAssignment.objects.filter(class_field=class_id)
+
+    def get_object(self):
+        class_id = self.kwargs.get('class_id')
+        module_id = self.kwargs.get('module_id')
+        assignment_obj = ClassModuleAssignment.objects.get(class_field=class_id,
+                                                           module=module_id)
+        is_owner = UserClassRoster.objects.filter(
+            user=self.request.user,
+            class_field=class_id,
+            role=RosterRole.OWNER
+        ).exists()
+        is_participant = UserClassRoster.objects.filter(
+            user=self.request.user,
+            class_field=class_id,
+            role=RosterRole.PARTICIPANT
+        ).exists()
+        is_get = self.request.method == 'GET'
+
+        if not (is_get and is_participant) and not (is_owner):
+            raise exceptions.PermissionDenied(
+                "You must be an owner of this class to modify its assignments.")
+        return assignment_obj
+
+
+# --- ClassCourseMapping---
+class ClassCourseMappingListCreateView(generics.ListCreateAPIView):
+    serializer_class = ClassCourseMappingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        class_id = self.kwargs.get('class_id')
+        if not class_id:
+            raise exceptions.ParseError(
+                "Missing required URL parameter: class_id")
+        return ClassCourseMapping.objects.filter(class_field=class_id)
+
+    def perform_create(self, serializer):
+        class_id = self.kwargs.get('class_id')
+        class_obj = Class.objects.get(class_id=class_id)
+        is_owner = UserClassRoster.objects.filter(
+            user=self.request.user,
+            class_field=class_obj,
+            role=RosterRole.OWNER
+        ).exists()
+        if not is_owner:
+            raise exceptions.PermissionDenied(
+                "You must be an owner of this class to add a course.")
+        serializer.save(class_field=class_obj)
+
+
+class ClassCourseMappingRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ClassCourseMappingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        class_id = self.kwargs.get('class_id')
+        if not class_id:
+            raise exceptions.ParseError(
+                "Missing required URL parameter: class_id")
+        return ClassCourseMapping.objects.filter(class_field=class_id)
+
+    def get_object(self):
+        class_id = self.kwargs.get('class_id')
+        course_id = self.kwargs.get('course_id')
+        assignment_obj = ClassCourseMapping.objects.get(class_field=class_id,
+                                                        course=course_id)
+        is_owner = UserClassRoster.objects.filter(
+            user=self.request.user,
+            class_field=class_id,
+            role=RosterRole.OWNER
+        ).exists()
+        is_participant = UserClassRoster.objects.filter(
+            user=self.request.user,
+            class_field=class_id,
+            role=RosterRole.PARTICIPANT
+        ).exists()
+        is_get = self.request.method == 'GET'
+
+        if not (is_get and is_participant) and not (is_owner):
+            raise exceptions.PermissionDenied(
+                "You must be an owner of this class to modify its assignments.")
+        return assignment_obj
+
+
+# --- CourseModuleMapping ---
+class CourseModuleMappingListCreateView(generics.ListCreateAPIView):
+    serializer_class = CourseModuleMappingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        course_id = self.kwargs.get('course_id')
+        if not course_id:
+            raise exceptions.ParseError(
+                "Missing required URL parameter: course_id")
+        return CourseModuleMapping.objects.filter(course=course_id)
+
+    def perform_create(self, serializer):
+        course_id = self.kwargs.get('course_id')
+        is_owner = Course.objects.filter(
+            course_id=course_id,
+            owner=self.request.user
+        ).exists()
+        if not is_owner:
+            raise exceptions.PermissionDenied(
+                "You must be the owner to add a module to a course")
+        serializer.save()
+
+
+class CourseModuleMappingRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CourseModuleMappingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        course_id = self.kwargs.get('course_id')
+        if not course_id:
+            raise exceptions.ParseError(
+                "Missing required URL parameter: course_id")
+        return CourseModuleMapping.objects.filter(course=course_id)
+
+    def get_object(self):
+        course_id = self.kwargs.get('course_id')
+        module_id = self.kwargs.get('module_id')
+        entry_obj = CourseModuleMapping.objects.get(course=course_id,
+                                                    module=module_id)
+        is_owner = Course.objects.filter(
+            course_id=course_id,
+            owner=self.request.user
+        ).exists()
+        is_get = self.request.method == 'GET'
+
+        if not (is_get) and not (is_owner):
+            raise exceptions.PermissionDenied(
+                "You must be an owner of this course to modify its modules.")
+        return entry_obj
 
 
 # --- Project ---
 class ProjectListCreateView(generics.ListCreateAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
+
 
 class ProjectRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Project.objects.all()
@@ -209,6 +337,7 @@ class UserListCreateView(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+
 class UserRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -220,6 +349,7 @@ class UserBadgeAchievementListCreateView(generics.ListCreateAPIView):
     queryset = UserBadgeAchievement.objects.all()
     serializer_class = UserBadgeAchievementSerializer
 
+
 class UserBadgeAchievementRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = UserBadgeAchievement.objects.all()
     serializer_class = UserBadgeAchievementSerializer
@@ -227,10 +357,10 @@ class UserBadgeAchievementRetrieveUpdateDestroyView(generics.RetrieveUpdateDestr
 
 
 # --- UserClassRoster ---
-# Note: Uses 'user' as primary key (composite key workaround)
 class UserClassRosterListCreateView(generics.ListCreateAPIView):
     queryset = UserClassRoster.objects.all()
     serializer_class = UserClassRosterSerializer
+
 
 class UserClassRosterRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = UserClassRoster.objects.all()
@@ -239,10 +369,10 @@ class UserClassRosterRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPI
 
 
 # --- UserCourseEnrollment ---
-# Note: Uses 'user' as primary key (composite key workaround)
 class UserCourseEnrollmentListCreateView(generics.ListCreateAPIView):
     queryset = UserCourseEnrollment.objects.all()
     serializer_class = UserCourseEnrollmentSerializer
+
 
 class UserCourseEnrollmentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = UserCourseEnrollment.objects.all()
@@ -255,112 +385,8 @@ class UserModuleProgressListCreateView(generics.ListCreateAPIView):
     queryset = UserModuleProgress.objects.all()
     serializer_class = UserModuleProgressSerializer
 
+
 class UserModuleProgressRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = UserModuleProgress.objects.all()
     serializer_class = UserModuleProgressSerializer
     lookup_field = 'progress_id'
-class ActivityViewSet(viewsets.ModelViewSet):
-    serializer_class=LearnBlocksSerializer
-    def create(self, request, *args, **kwargs):
-        return Response(mock_activity)
-
-class ClassViewSet(viewsets.ModelViewSet):
-    serializer_class=DynamicFieldsSerializer
-    def get_queryset(self):
-        return mock_class_list["classes"]
-    def retrieve(self, request, *args, **kwargs):
-        return Response(mock_class)
-    def create(self, request, *args, **kwargs):
-        return Response(mock_class)
-    def update(self, request, *args, **kwargs):
-        return Response(mock_class)
-    def destroy(self, request, *args, **kwargs):
-        return Response()
-    @action(detail=True, methods=['get'], url_path='assignment')
-    def assignment(self, request, pk=None):
-        return Response(assignment_list)
-
-class CourseViewSet(viewsets.ModelViewSet):
-    serializer_class=DynamicFieldsSerializer
-    def get_queryset(self):
-        return mock_course_list["courses"]
-    def retrieve(self, request, *args, **kwargs):
-        return Response(mock_course)
-    def create(self, request, *args, **kwargs):
-        return Response(mock_course)
-    def update(self, request, *args, **kwargs):
-        return Response(mock_course)
-    def destroy(self, request, *args, **kwargs):
-        return Response()
-    @action(detail=True, methods=['get'], url_path='module')
-    def module(self, request, pk=None):
-        return Response(module_list)
-    @action(detail=True, methods=['get'], url_path='assignment')
-    def assignment(self, request, pk=None):
-        return Response(assignment_list)
-
-class ModuleViewSet(viewsets.ModelViewSet):
-    serializer_class=DynamicFieldsSerializer
-    def get_queryset(self):
-        return modules
-    def retrieve(self, request, *args, **kwargs):
-        return Response(module_data_1)
-    def create(self, request, *args, **kwargs):
-        return Response(module_data_1)
-    def update(self, request, *args, **kwargs):
-        return Response(module_data_1)
-    def destroy(self, request, *args, **kwargs):
-        return Response()    
-    @action(detail=True, methods=['get'], url_path='progress')
-    def progress(self, request, pk=None):
-        return Response(progress_list)
-
-    
-class ProgressViewSet(viewsets.ModelViewSet):
-    serializer_class=DynamicFieldsSerializer
-    def get_queryset(self):
-        return progresses
-    def retrieve(self, request, *args, **kwargs):
-        return Response(progress_data_1)
-    def create(self, request, *args, **kwargs):
-        return Response(progress_data_1)
-    def update(self, request, *args, **kwargs):
-        return Response(progress_data_1)
-    def destroy(self, request, *args, **kwargs):
-        return Response() 
-
-class AssignmentViewSet(viewsets.ModelViewSet):
-    serializer_class=DynamicFieldsSerializer
-    def get_queryset(self):
-        return assignments
-    def retrieve(self, request, *args, **kwargs):
-        return Response(assignment_data_1)
-    def create(self, request, *args, **kwargs):
-        return Response(assignment_data_1)
-    def update(self, request, *args, **kwargs):
-        return Response(assignment_data_1)
-    def destroy(self, request, *args, **kwargs):
-        return Response()     
-    
-class SessionViewSet(viewsets.ModelViewSet):
-    serializer_class=DynamicFieldsSerializer
-    def create(self, request, *args, **kwargs):
-        request.session['user'] = mock_session
-        return Response(mock_session)
-    @action(detail=False, methods=['delete'], url_path='reset')
-    def reset_session(self, request, *args, **kwargs):
-        request.session.flush()
-        return Response()
-
-class ProjectViewSet(viewsets.ModelViewSet):
-    serializer_class=DynamicFieldsSerializer
-    def get_queryset(self):
-        return projects
-    def retrieve(self, request, *args, **kwargs):
-        return Response(project_data_1)
-    def create(self, request, *args, **kwargs):
-        return Response(project_data_1)
-    def update(self, request, *args, **kwargs):
-        return Response(project_data_1)
-    def destroy(self, request, *args, **kwargs):
-        return Response()
