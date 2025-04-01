@@ -13,6 +13,7 @@ from .serializers import (BadgeSerializer, ClassSerializer,
                           UserModuleProgressSerializer)
 
 from rest_framework import generics, views, authentication, exceptions
+
 from .permissions import permissions
 from .enums import RosterRole, UserRole, CourseVisibility
 
@@ -390,3 +391,43 @@ class UserModuleProgressRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroy
     queryset = UserModuleProgress.objects.all()
     serializer_class = UserModuleProgressSerializer
     lookup_field = 'progress_id'
+
+
+class UserProjectsListView(generics.ListAPIView):
+    serializer_class = ProjectSerializer
+
+    def get_queryset(self):
+        user_id = self.kwargs.get('user_id')
+        return Project.objects.filter(user_id=user_id)
+
+
+class UserBadgesListView(generics.ListAPIView):
+    serializer_class = BadgeSerializer
+
+    def get_queryset(self):
+        user_id = self.kwargs.get('user_id')
+        return Badge.objects.filter(userbadgeachievement__user_id=user_id)
+
+
+class UserCoursesListView(generics.ListAPIView):
+    """
+    GET /courses/user/{user_id}/
+    Returns all courses where Course.owner_id matches the given ownerid.
+    """
+    serializer_class = CourseSerializer
+
+    def get_queryset(self):
+        user_id = self.kwargs.get('user_id')
+        return Course.objects.filter(owner_id=user_id)
+
+
+class UserModulesListView(generics.ListAPIView):
+    """
+    GET /modules/user/{user_id}/
+    Returns all modules where Module.owner_id matches the given ownerid.
+    """
+    serializer_class = ModuleSerializer
+
+    def get_queryset(self):
+        user_id = self.kwargs.get('user_id')
+        return Module.objects.filter(owner_id=user_id)

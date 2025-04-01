@@ -55,7 +55,6 @@ urlpatterns = [
     path('classes/<uuid:class_id>/courses/',
          views.ClassCourseMappingListCreateView.as_view(),
          name='class-courses-list'),
-    # Here we use the course field (assumed integer) as lookup:
     path('classes/<uuid:class_id>/courses/<uuid:course_id>/',
          views.ClassCourseMappingRetrieveUpdateDestroyView.as_view(),
          name='class-courses-detail'),
@@ -91,7 +90,20 @@ urlpatterns = [
     # User endpoints:
     path('users/', views.UserListCreateView.as_view(), name='user-list'),
     path('users/<uuid:user_id>/',
-         views.UserRetrieveUpdateDestroyView.as_view(), name='user-detail'),
+         views.UserRetrieveUpdateDestroyView.as_view(),
+         name='user-detail'),
+    path('users/<uuid:user_id>/projects',
+         views.UserProjectsListView.as_view(),
+         name='user_projects_list'),
+    path('users/<uuid:user_id>/badges',
+         views.UserBadgesListView.as_view(),
+         name='user_badges_list'),
+    path('users/<uuid:user_id>/courses',
+         views.UserCoursesListView.as_view(),
+         name='user_courses_list'),
+    path('users/<uuid:user_id>/moduels',
+         views.UserModulesListView.as_view(),
+         name='user_modules_list'),
 
     # UserBadgeAchievement endpoints:
     path('user-badge-achievements/',
