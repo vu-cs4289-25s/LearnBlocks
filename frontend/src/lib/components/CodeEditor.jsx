@@ -67,13 +67,12 @@ export default function CodeEditor() {
     }
 
     const updatePythonState = pythonSource => {
-        console.log('hello');
         const parsedSource = ptob(pythonSource);
-        console.log(parsedSource);
-        console.log(parsedSource['error']);
        
         if (!parsedSource['error'])
             setGlobalState(pythonSource);
+        else
+            console.log(parsedSource);
     }
 
     return (

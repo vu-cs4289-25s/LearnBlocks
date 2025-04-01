@@ -1,7 +1,34 @@
 use rustpython_parser::{lexer::lex, Mode, parse_tokens, ast};
 use malachite_base::strings::ToDebugString;
 use malachite_bigint::BigInt;
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
+use std::sync::Mutex;
+use unique_id::Generator;
+use unique_id::string::StringGenerator;
 use wasm_bindgen::prelude::*;
+
+type VariableContainer = Mutex<Lazy<HashMap<String, String>>>;
+
+static VARIABLES_CONTAINER: VariableContainer = Mutex::new(Lazy::new(|| HashMap::new()));
+static GEN: Lazy<StringGenerator> = Lazy::new(|| StringGenerator::default());
+
+fn is_reserved_word(keyword: &str) -> Option<&str> {
+    match keyword {
+        "False" | "None" | "True" | 
+        "and" | "as" | "assert" |
+        "async" | "await" | "breal" |
+        "class" | "continue" | "def" |
+        "del" | "elif" | "else" | "except" |
+        "finally" | "for" | "from" |
+        "global" | "if" | "import" | "in" |
+        "is" | "lambda" | "nonlocal" |
+        "not" | "or" | "pass" | "raise" |
+        "return" | "try" | "while" |
+        "with" | "yield" => Some(keyword),
+        _ => None
+    }
+}
 
 fn insert_next_block(cur: String, insert: String) -> String {
     let next = format!(",\"next\": {{\"block\" : {}}}", insert);
@@ -95,6 +122,29 @@ fn create_if_exp_block(test: String, body: String, orelse: String) -> String {
 fn create_while_block(test: String, body: String) -> String {
     let input = format!("{{\"BOOL\":{{\"block\":{}}},\"DO\":{{\"block\":{}}} }}", test, body);
     format!("{{\"type\":\"controls_whileUntil\",\"inputs\":{}}}", input)
+}
+
+fn create_variable_set_block(target: String, value: String) -> String {
+    let vars = VARIABLES_CONTAINER.lock().unwrap();
+    let binding = String::from("");
+    let var_id = vars.get(&target).unwrap_or(&binding);
+    let input = format!("{{\"VALUE\":{{\"block\":{}}}}}", value);
+    let fields = format!("{{ \"VAR\": \"{}\"}}", var_id);
+    drop(vars);
+    format!("{{\"type\":\"variable_set\",\"inputs\":{},\"fields\":{}}}", input, fields)
+}
+
+fn parse_assign(assign_stmt: &ast::StmtAssign) -> Result<String, String> {
+    if assign_stmt.targets.len() != 1 {
+        return Err(String::from("invalid number of arguments to assignstatement"));
+    }
+    let target = parse_expr(&assign_stmt.targets[0]);
+    let value = parse_expr(&assign_stmt.value);
+    if let (Ok(target), Ok(value))  = (target, value) {
+        Ok(create_variable_set_block(target, value))
+    } else {
+        Err(assign_stmt.to_debug_string())
+    }
 }
 
 fn parse_while(while_stmt: &ast::StmtWhile) -> Result<String, String> {
@@ -261,7 +311,15 @@ fn parse_expr_if_exp(expr_if_exp: &ast::ExprIfExp) -> Result<String, String> {
 
 fn parse_expr_name(expr_name: &ast::ExprName) -> Result<String, String> {
     let identifier = expr_name.id.as_str();
-    Ok(String::from(identifier))
+    if is_reserved_word(identifier).is_none() {
+        let mut vars = VARIABLES_CONTAINER.lock().unwrap();
+        if vars.get(identifier.into()).is_none() {
+            let id = GEN.next_id();
+            vars.insert(String::from(identifier), id);
+        }
+        drop(vars);
+    }
+    return Ok(String::from(identifier));
 }
 
 fn parse_expr_unary_op(expr_unary_op: &ast::ExprUnaryOp) -> Result<String, String> {
@@ -297,7 +355,7 @@ fn parse_statement(stmt: &ast::Stmt) -> Result<String, String> {
         ast::Stmt::FunctionDef(_) => Ok(String::from("{function def}")),
         ast::Stmt::Return(_) => Ok(String::from("{return def}")),
         ast::Stmt::Delete(_) => Ok(String::from("{delete}")),
-        ast::Stmt::Assign(_) => Ok(String::from("{assign}")),
+        ast::Stmt::Assign(s) => parse_assign(&s),
         ast::Stmt::AugAssign(_) => Ok(String::from("{aug assign}")),
         ast::Stmt::AnnAssign(_) => Ok(String::from("{ann assign}")),
         ast::Stmt::For(_) => Ok(String::from("{for}")),
@@ -347,6 +405,11 @@ fn create_syntax_tree(python_source: &str) -> Result<ast::Mod, &'static str> {
     }
 }
 
+fn create_json_wrappers(blocks: String) -> String {
+    let interior_blocks = format!("{{\"blocks\":[{}]}}", blocks);
+    format!("{{\"blocks\":{}}}", interior_blocks)
+}
+
 #[wasm_bindgen]
 pub fn ptob_wasm(python_source: &str) -> String {
     let raw_ast = create_syntax_tree(python_source);
@@ -356,7 +419,7 @@ pub fn ptob_wasm(python_source: &str) -> String {
         if raw_module.is_some() {
             let stmts = join_statements(&raw_module.unwrap().body);
             if stmts.is_ok() {
-                return stmts.unwrap();
+                return create_json_wrappers(stmts.unwrap());
             } else {
                 return format!(
                     "{{\"error\": \"cannot parse\", \"details\": {}}}", 
