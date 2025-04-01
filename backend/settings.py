@@ -108,7 +108,30 @@ DATABASES = {
     }
 }
 
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "access_key": env("S3_ACCESS_KEY_ID"),
+            "secret_key": env("S3_SECRET_ACCESS_KEY"),
+            "bucket_name": env("S3_BUCKET_NAME"),
+            "endpoint_url": env("S3_URL"),
+            "region_name": env("S3_REGION"),
+            "addressing_style": env("S3_ADDRESSING_STYLE"),
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.2/howto/static-files/
+
+STATIC_URL = 'static/'
+
 # User Authentication
+
 AUTH_USER_MODEL = 'learnblocks.User'
 
 # Password validation
@@ -141,11 +164,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
-STATIC_URL = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

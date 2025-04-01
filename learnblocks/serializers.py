@@ -19,23 +19,11 @@ class ClassSerializer(serializers.ModelSerializer):
         model = Class
         fields = '__all__'
 
-    def create(self, validated_data):
-        if not validated_data.get('created_at'):
-            validated_data['created_at'] = timezone.now()
-        return super().create(validated_data)
-
 
 class ClassModuleAssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassModuleAssignment
-        fields = '__all__'
-
-    def create(self, validated_data):
-        if not validated_data.get('assigned_date'):
-            validated_data['assigned_date'] = timezone.now()
-        if not validated_data.get('due_date'):
-            validated_data['due_date'] = datetime.date.today()
-        return super().create(validated_data)
+        fields = ['module', 'due_date']
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -48,11 +36,6 @@ class ClassCourseMappingSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassCourseMapping
         fields = '__all__'
-
-    def create(self, validated_data):
-        if not validated_data.get('assigned_date'):
-            validated_data['assigned_date'] = timezone.now()
-        return super().create(validated_data)
 
 
 class ModuleSerializer(serializers.ModelSerializer):
@@ -72,18 +55,6 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = '__all__'
 
-    def create(self, validated_data):
-        if not validated_data.get('created_at'):
-            validated_data['created_at'] = timezone.now()
-        if not validated_data.get('last_modified'):
-            validated_data['last_modified'] = timezone.now()
-        return super().create(validated_data)
-
-    def update(self, instance, validated_data):
-        # Always update last_modified to the current time on update.
-        validated_data['last_modified'] = timezone.now()
-        return super().update(instance, validated_data)
-
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True,
@@ -101,27 +72,26 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+
+        if request and request.user != instance:
+            data.pop('email', None)
+
+        return data
+
 
 class UserBadgeAchievementSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserBadgeAchievement
         fields = '__all__'
 
-    def create(self, validated_data):
-        if not validated_data.get('earned_date'):
-            validated_data['earned_date'] = timezone.now()
-        return super().create(validated_data)
-
 
 class UserClassRosterSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserClassRoster
         fields = '__all__'
-
-    def create(self, validated_data):
-        if not validated_data.get('enrollment_date'):
-            validated_data['enrollment_date'] = datetime.date.today()
-        return super().create(validated_data)
 
 
 class UserCourseEnrollmentSerializer(serializers.ModelSerializer):
@@ -134,11 +104,6 @@ class UserModuleProgressSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserModuleProgress
         fields = '__all__'
-
-    def create(self, validated_data):
-        if not validated_data.get('completion_date'):
-            validated_data['completion_date'] = timezone.now()
-        return super().create(validated_data)
 
 
 class LearnBlocksSerializer(serializers.ModelSerializer):

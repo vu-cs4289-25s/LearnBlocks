@@ -20,58 +20,73 @@ from rest_framework.authtoken.views import obtain_auth_token
 from learnblocks import views
 
 urlpatterns = [
+    # Admin endpoint:
     path('admin/', admin.site.urls),
 
+    # Auth endpoints:
     path('login/', obtain_auth_token),
     path('whoami/', views.WhoAmIView.as_view(), name='who-am-i'),
 
-
-    path('badges/', views.BadgeListView.as_view(), name='badge-list'),
+    # Badge endpoints:
+    path('badges/',
+         views.BadgeListCreateView.as_view(),
+         name='badge-list'),
     path('badges/<uuid:badge_id>/',
-         views.BadgeDetailView.as_view(), name='badge-detail'),
-
-    path('badges/', views.BadgeListView.as_view(), name='badge-list'),
-    path('badges/<uuid:badge_id>/',
-         views.BadgeDetailView.as_view(), name='badge-detail'),
+         views.BadgeDetailView.as_view(),
+         name='badge-detail'),
 
     # Class endpoints:
-    path('classes/', views.ClassListCreateView.as_view(), name='class-list'),
+    path('classes/',
+         views.ClassListCreateView.as_view(),
+         name='class-list'),
     path('classes/<uuid:class_id>/',
-         views.ClassRetrieveUpdateDestroyView.as_view(), name='class-detail'),
+         views.ClassRetrieveUpdateDestroyView.as_view(),
+         name='class-detail'),
 
     # ClassModuleAssignment endpoints:
-    path('class-module-assignments/', views.ClassModuleAssignmentListCreateView.as_view(),
-         name='classmoduleassignment-list'),
-    path('class-module-assignments/<uuid:assignment_id>/',
-         views.ClassModuleAssignmentRetrieveUpdateDestroyView.as_view(), name='classmoduleassignment-detail'),
+    path('classes/<uuid:class_id>/modules/',
+         views.ClassModuleAssignmentListCreateView.as_view(),
+         name='class-modules-list'),
+    path('classes/<uuid:class_id>/modules/<uuid:module_id>/',
+         views.ClassModuleAssignmentRetrieveUpdateDestroyView.as_view(),
+         name='class-modules-detail'),
+
+    # ClassCourseMapping endpoints:
+    path('classes/<uuid:class_id>/courses/',
+         views.ClassCourseMappingListCreateView.as_view(),
+         name='class-courses-list'),
+    # Here we use the course field (assumed integer) as lookup:
+    path('classes/<uuid:class_id>/courses/<uuid:course_id>/',
+         views.ClassCourseMappingRetrieveUpdateDestroyView.as_view(),
+         name='class-courses-detail'),
 
     # Course endpoints:
-    path('courses/', views.CourseListCreateView.as_view(), name='course-list'),
+    path('courses/', views.CourseListCreateView.as_view(),
+         name='course-list'),
     path('courses/<uuid:course_id>/',
-         views.CourseRetrieveUpdateDestroyView.as_view(), name='course-detail'),
+         views.CourseRetrieveUpdateDestroyView.as_view(),
+         name='course-detail'),
 
-    # CourseClassMapping endpoints:
-    path('course-class-mappings/', views.ClassCourseMappingListCreateView.as_view(),
-         name='courseclassmapping-list'),
-    # Here we use the course field (assumed integer) as lookup:
-    path('course-class-mappings/<uuid:course>/',
-         views.ClassCourseMappingRetrieveUpdateDestroyView.as_view(), name='courseclassmapping-detail'),
+    # CourseModuleMapping endpoints:
+    path('courses/<uuid:course_id>/modules/',
+         views.CourseModuleMappingListCreateView.as_view(),
+         name='course-modules-list'),
+    path('courses/<uuid:course_id>/modules/<uuid:module_id>/',
+         views.CourseModuleMappingRetrieveUpdateDestroyView.as_view(),
+         name='course-modules-detail'),
 
     # Module endpoints:
     path('modules/', views.ModuleListCreateView.as_view(), name='module-list'),
     path('modules/<uuid:module_id>/',
-         views.ModuleRetrieveUpdateDestroyView.as_view(), name='module-detail'),
-
-    # ModuleCourseMapping endpoints:
-    path('module-course-mappings/', views.CourseModuleMappingListCreateView.as_view(),
-         name='modulecoursemapping-list'),
-    path('module-course-mappings/<uuid:course>/',
-         views.CourseModuleMappingRetrieveUpdateDestroyView.as_view(), name='modulecoursemapping-detail'),
+         views.ModuleRetrieveUpdateDestroyView.as_view(),
+         name='module-detail'),
 
     # Project endpoints:
-    path('projects/', views.ProjectListCreateView.as_view(), name='project-list'),
+    path('projects/', views.ProjectListCreateView.as_view(),
+         name='project-list'),
     path('projects/<uuid:project_id>/',
-         views.ProjectRetrieveUpdateDestroyView.as_view(), name='project-detail'),
+         views.ProjectRetrieveUpdateDestroyView.as_view(),
+         name='project-detail'),
 
     # User endpoints:
     path('users/', views.UserListCreateView.as_view(), name='user-list'),
@@ -79,26 +94,33 @@ urlpatterns = [
          views.UserRetrieveUpdateDestroyView.as_view(), name='user-detail'),
 
     # UserBadgeAchievement endpoints:
-    path('user-badge-achievements/', views.UserBadgeAchievementListCreateView.as_view(),
+    path('user-badge-achievements/',
+         views.UserBadgeAchievementListCreateView.as_view(),
          name='userbadgeachievement-list'),
     path('user-badge-achievements/<uuid:achievement_id>/',
-         views.UserBadgeAchievementRetrieveUpdateDestroyView.as_view(), name='userbadgeachievement-detail'),
+         views.UserBadgeAchievementRetrieveUpdateDestroyView.as_view(),
+         name='userbadgeachievement-detail'),
 
     # UserClassRoster endpoints:
     path('user-class-rosters/', views.UserClassRosterListCreateView.as_view(),
          name='userclassroster-list'),
     path('user-class-rosters/<str:username>/',
-         views.UserClassRosterRetrieveUpdateDestroyView.as_view(), name='userclassroster-detail'),
+         views.UserClassRosterRetrieveUpdateDestroyView.as_view(),
+         name='userclassroster-detail'),
 
     # UserCourseEnrollment endpoints:
-    path('user-course-enrollments/', views.UserCourseEnrollmentListCreateView.as_view(),
+    path('user-course-enrollments/',
+         views.UserCourseEnrollmentListCreateView.as_view(),
          name='usercourseenrollment-list'),
     path('user-course-enrollments/<str:username>/',
-         views.UserCourseEnrollmentRetrieveUpdateDestroyView.as_view(), name='usercourseenrollment-detail'),
+         views.UserCourseEnrollmentRetrieveUpdateDestroyView.as_view(),
+         name='usercourseenrollment-detail'),
 
     # UserModuleProgress endpoints:
-    path('user-module-progresses/', views.UserModuleProgressListCreateView.as_view(),
+    path('user-module-progresses/',
+         views.UserModuleProgressListCreateView.as_view(),
          name='usermoduleprogress-list'),
     path('user-module-progresses/<uuid:progress_id>/',
-         views.UserModuleProgressRetrieveUpdateDestroyView.as_view(), name='usermoduleprogress-detail'),
+         views.UserModuleProgressRetrieveUpdateDestroyView.as_view(),
+         name='usermoduleprogress-detail'),
 ]

@@ -4,18 +4,16 @@ export const tryRegister = async (data) => {
     return new Error("Passwords did not match");
   if (!data.password) return new Error("Password required ");
   const payload = {
-    first_name: data.first_name,
-    last_name: data.last_name,
     username: data.username,
     email: data.email,
-    city: "",
-    state: "",
     password: data.password,
+    first_name: data.first_name,
+    last_name: data.last_name,
     role: data.type,
   };
 
   try {
-    const res = await fetch(`${import.meta.env.VITE_CLOUD}/api/user/`, {
+    const res = await fetch(`${import.meta.env.VITE_CLOUD}/users/`, {
       method: "POST",
       body: JSON.stringify(payload),
       headers: { "content-type": "application/json" },
@@ -35,7 +33,7 @@ export const tryLogin = async (data) => {
   if (!data.password) return new Error("Password Required");
   const payload = { ...data };
   try {
-    const res = await fetch(`${import.meta.env.VITE_CLOUD}/api/session/`, {
+    const res = await fetch(`${import.meta.env.VITE_CLOUD}/login/`, {
       method: "POST",
       body: JSON.stringify(payload),
       headers: { "content-type": "application/json" },

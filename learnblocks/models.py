@@ -11,6 +11,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from .managers import CustomUserManager
 from .enums import enums
+from .utils.s3 import get_path
 import uuid
 
 
@@ -18,8 +19,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(unique=True, max_length=50)
     email = models.CharField(unique=True, max_length=255)
 
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
+    first_name = models.CharField(max_length=50, blank=True)
+    last_name = models.CharField(max_length=50, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     week_activity = models.BinaryField(max_length=1, default=b'\x00')
     role = models.TextField(choices=enums.UserRole,
@@ -27,8 +28,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     class_enrollments = models.ManyToManyField(to='Class',
                                                through='UserClassRoster',
-                                               related_name='users',
-                                               related_query_name='user')
+                                               related_name='members',
+                                               related_query_name='member')
     badges = models.ManyToManyField(to='Badge',
                                     through='UserBadgeAchievement',
                                     related_name='users',
@@ -51,12 +52,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         db_table = 'user'
 
 
-
 class Class(models.Model):
     class_id = models.UUIDField(default=uuid.uuid4,
                                 editable=False, unique=True)
     class_name = models.CharField(max_length=255)
-    class_code = models.CharField(unique=True, max_length=20)
+    class_code = models.UUIDField(default=uuid.uuid4,
+                                  unique=True, editable=False)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -76,9 +77,12 @@ class Badge(models.Model):
     badge_id = models.UUIDField(default=uuid.uuid4,
                                 editable=False, unique=True)
 
-    badge_name = models.CharField(max_length=50)
-    badge_description = models.TextField()
-    s3_url = models.URLField()
+    name = models.CharField(max_length=50)
+    description = models.TextField()
+
+    image = models.ImageField(upload_to=get_path)
+
+    s3_key_id = 'badge_id'
 
     class Meta:
         db_table = 'badge'
@@ -90,9 +94,11 @@ class Course(models.Model):
     course_name = models.CharField(max_length=255)
     status = models.TextField(choices=enums.CourseStatus,
                               default=enums.CourseStatus.ACTIVE)
-    badge = models.ForeignKey(to=Badge, on_delete=models.SET_NULL, null=True,
+    badge = models.ForeignKey(to=Badge, to_field='badge_id',
+                              on_delete=models.SET_NULL, null=True,
                               related_name='badges', related_query_name='badge')
-    owner = models.ForeignKey(to='User', on_delete=models.CASCADE, null=True,
+    owner = models.ForeignKey(to='User', to_field='username',
+                              on_delete=models.CASCADE, null=True,
                               related_name='owned_courses',
                               related_query_name='owned_course')
     visibility = models.TextField(choices=enums.CourseVisibility,
@@ -112,10 +118,13 @@ class Module(models.Model):
     module_name = models.CharField(max_length=255)
     visibility = models.TextField(choices=enums.ModuleVisibility,
                                   default=enums.ModuleVisibility.PRIVATE)
-    owner = models.ForeignKey(to='User', on_delete=models.CASCADE, null=True,
+    owner = models.ForeignKey(to='User', to_field='username',
+                              on_delete=models.CASCADE, null=True,
                               related_name='owned_modules',
                               related_query_name='owned_module')
-    s3_url = models.TextField()
+    file = models.FileField(upload_to=get_path)
+
+    s3_key_id = 'module_id'
 
     class Meta:
         db_table = 'module'
@@ -125,18 +134,20 @@ class Project(models.Model):
     project_id = models.UUIDField(default=uuid.uuid4,
                                   editable=False, unique=True)
     project_name = models.CharField(max_length=100)
-    s3_url = models.TextField()
+    blob = models.FileField(upload_to=get_path)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
-    user = models.ForeignKey(to='User',
+    user = models.ForeignKey(to='User', to_field='username',
                              on_delete=models.CASCADE,
                              related_name='projects',
                              related_query_name='project')
-    module = models.ForeignKey(to=Module,
+    module = models.ForeignKey(to=Module, to_field='module_id',
                                on_delete=models.SET_NULL,
                                null=True,
                                related_name='projects',
                                related_query_name='project')
+
+    s3_key_id = 'project_id'
 
     class Meta:
         db_table = 'project'
@@ -145,9 +156,11 @@ class Project(models.Model):
 class ClassModuleAssignment(models.Model):
     assignment_id = models.UUIDField(default=uuid.uuid4,
                                      editable=False, unique=True)
-    class_field = models.ForeignKey(to=Class, on_delete=models.CASCADE,
+    class_field = models.ForeignKey(to=Class, to_field='class_id',
+                                    on_delete=models.CASCADE,
                                     db_column='class_id')
-    module = models.ForeignKey(to='Module', on_delete=models.CASCADE)
+    module = models.ForeignKey(to='Module', to_field='module_id',
+                               on_delete=models.CASCADE)
     assigned_date = models.DateTimeField(auto_now_add=True)
     due_date = models.DateField(blank=True, null=True)
 
@@ -163,8 +176,9 @@ class ClassModuleAssignment(models.Model):
 class ClassCourseMapping(models.Model):
     assignment_id = models.UUIDField(default=uuid.uuid4,
                                      editable=False, unique=True)
-    course = models.ForeignKey(to=Course, on_delete=models.CASCADE)
-    class_field = models.ForeignKey(to=Class,
+    course = models.ForeignKey(to=Course, to_field='course_id',
+                               on_delete=models.CASCADE)
+    class_field = models.ForeignKey(to=Class, to_field='class_id',
                                     on_delete=models.CASCADE,
                                     db_column='class_id')
     assigned_date = models.DateTimeField(auto_now_add=True)
@@ -181,8 +195,10 @@ class ClassCourseMapping(models.Model):
 class CourseModuleMapping(models.Model):
     entry_id = models.UUIDField(default=uuid.uuid4,
                                 editable=False, unique=True)
-    course = models.ForeignKey(to=Course, on_delete=models.CASCADE)
-    module = models.ForeignKey(to=Module, on_delete=models.CASCADE)
+    course = models.ForeignKey(to=Course, to_field='course_id',
+                               on_delete=models.CASCADE)
+    module = models.ForeignKey(to=Module, to_field='module_id',
+                               on_delete=models.CASCADE)
     module_order = models.IntegerField()
 
     def save(self, *args, **kwargs):
@@ -202,8 +218,10 @@ class CourseModuleMapping(models.Model):
 class UserBadgeAchievement(models.Model):
     achievement_id = models.UUIDField(default=uuid.uuid4,
                                       editable=False, unique=True)
-    badge = models.ForeignKey(to=Badge, on_delete=models.CASCADE)
-    user = models.ForeignKey(to=User, on_delete=models.CASCADE)
+    badge = models.ForeignKey(to=Badge, to_field='badge_id',
+                              on_delete=models.CASCADE)
+    user = models.ForeignKey(to=User, to_field='username',
+                             on_delete=models.CASCADE)
     earned_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -220,12 +238,14 @@ class UserClassRoster(models.Model):
     # that is not supported. The first column is selected.
     entry_id = models.UUIDField(default=uuid.uuid4,
                                 editable=False, unique=True)
-    user = models.ForeignKey(to=User, on_delete=models.CASCADE)
-    class_field = models.ForeignKey(to=Class, on_delete=models.CASCADE,
+    user = models.ForeignKey(to=User, to_field='username',
+                             on_delete=models.CASCADE)
+    class_field = models.ForeignKey(to=Class, to_field='class_id',
+                                    on_delete=models.CASCADE,
                                     db_column='class_id')
     role = models.TextField(choices=enums.RosterRole,
                             default=enums.RosterRole.PARTICIPANT)
-    enrollment_date = models.DateField()
+    enrollment_date = models.DateField(auto_now_add=True)
 
     class Meta:
         db_table = 'user_class_roster'
@@ -239,8 +259,10 @@ class UserClassRoster(models.Model):
 class UserCourseEnrollment(models.Model):
     enrollment_id = models.UUIDField(default=uuid.uuid4,
                                      editable=False, unique=True)
-    course = models.ForeignKey(to=Course, on_delete=models.CASCADE)
-    user = models.ForeignKey(to=User, on_delete=models.CASCADE)
+    course = models.ForeignKey(to=Course, to_field='course_id',
+                               on_delete=models.CASCADE)
+    user = models.ForeignKey(to=User, to_field='username',
+                             on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'user_course_enrollment'
@@ -254,11 +276,13 @@ class UserCourseEnrollment(models.Model):
 class UserModuleProgress(models.Model):
     progress_id = models.UUIDField(default=uuid.uuid4,
                                    editable=False, unique=True)
-    user = models.ForeignKey(to=User, on_delete=models.CASCADE)
-    module = models.ForeignKey(to=Module, on_delete=models.CASCADE)
+    user = models.ForeignKey(to=User, to_field='username',
+                             on_delete=models.CASCADE)
+    module = models.ForeignKey(to=Module, to_field='module_id',
+                               on_delete=models.CASCADE)
     status = models.TextField(choices=enums.ModuleStatus,
                               default=enums.ModuleStatus.LOCKED)
-    completion_date = models.DateTimeField(null=True)
+    completion_date = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         db_table = 'user_module_progress'
