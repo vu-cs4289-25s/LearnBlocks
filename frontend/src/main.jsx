@@ -15,6 +15,9 @@ import EditProfilePage from "$pages/EditProfilePage";
 import TeacherHomePage from "$pages/TeacherHomePage";
 import TeacherClassesPage from "$pages/TeacherClassesPage";
 import TeacherAssignmentsPage from "$pages/TeacherAssignmentsPage";
+import StudentsListPage from "$pages/StudentsListPage";
+import ClassStudentDetailPage from "$pages/ClassStudentDetailPage";
+
 
 const root = document.getElementById("root");
 
@@ -43,6 +46,8 @@ ReactDOM.createRoot(root).render(
             <Route path="t/">
               <Route path="home" element={<TeacherHomePage />} />
               <Route path="classes" element={<TeacherClassesPage />} />
+              <Route path="classes/:classid/students" element={<StudentsListPage />} />
+              <Route path="classes/:classid/students/:studentid" element={<ClassStudentDetailPage />} />
               <Route path="c/">
                 <Route path=":classid" element={<TeacherAssignmentsPage />} />
               </Route>

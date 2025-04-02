@@ -26,7 +26,16 @@ export default function ClassesWidget({ className }) {
       <ul className="flex-1">
         {data[page - 1].map((course, key) => (
           <li className="m-2 h-1/7 rounded bg-zinc-900 p-2" key={key}>
-            <h1>{course.name}</h1>
+            {/* View button in top-right */}
+            <div className="mb-2 flex items-center justify-between">
+              <h1 className="text-md font-semibold">{course.name}</h1>
+              <Link
+                to={`/t/classes/${course.course_id}/students`}
+                className="inline-block rounded bg-amber-400 px-2 py-0.5 text-xs text-black hover:bg-amber-500"
+              >
+                View Students
+              </Link>
+            </div>
             <hr className="h-0.5 text-zinc-800" />
             <p className="text-xs">{course.description}</p>
           </li>
