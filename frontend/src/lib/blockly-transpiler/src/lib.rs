@@ -129,9 +129,9 @@ fn create_variable_set_block(target: String, value: String) -> String {
     let binding = String::from("");
     let var_id = vars.get(&target).unwrap_or(&binding);
     let input = format!("{{\"VALUE\":{{\"block\":{}}}}}", value);
-    let fields = format!("{{ \"VAR\": \"{}\"}}", var_id);
+    let fields = format!("{{ \"VAR\": {{\"id\":\"{}\"}}}}", var_id);
     drop(vars);
-    format!("{{\"type\":\"variable_set\",\"inputs\":{},\"fields\":{}}}", input, fields)
+    format!("{{\"type\":\"variables_set\",\"inputs\":{},\"fields\":{}}}", input, fields)
 }
 
 fn parse_assign(assign_stmt: &ast::StmtAssign) -> Result<String, String> {
@@ -407,14 +407,30 @@ fn create_syntax_tree(python_source: &str) -> Result<ast::Mod, &'static str> {
 
 fn create_json_wrappers(blocks: String) -> String {
     let interior_blocks = format!("{{\"blocks\":[{}]}}", blocks);
-    format!("{{\"blocks\":{}}}", interior_blocks)
+    let variables = VARIABLES_CONTAINER.lock().unwrap().clone();
+    let var_names: Vec<String> = variables.clone().into_keys().collect();
+    let var_ids: Vec<String> = variables.into_values().collect();
+    let mut var_str = String::from("[");
+    for (name, id) in var_names.into_iter().zip(var_ids.into_iter()) {
+        let s = format!("{{\"name\": \"{}\", \"id\": \"{}\"}},", name, id);
+        var_str.push_str(s.as_str());
+    }
+    var_str.pop();
+    var_str.push(']');
+    format!("{{\"blocks\":{}, \"variables\": {} }}", interior_blocks, var_str)
+}
+
+fn reset_vars() {
+    let mut vars = VARIABLES_CONTAINER.lock().unwrap();
+    vars.clear();
 }
 
 #[wasm_bindgen]
 pub fn ptob_wasm(python_source: &str) -> String {
+    reset_vars();
     let raw_ast = create_syntax_tree(python_source);
     if raw_ast.is_ok() {
-        let processed_ast = raw_ast.unwrap();
+        let processed_ast = raw_ast.clone().unwrap();
         let raw_module = processed_ast.as_module();
         if raw_module.is_some() {
             let stmts = join_statements(&raw_module.unwrap().body);
@@ -428,5 +444,8 @@ pub fn ptob_wasm(python_source: &str) -> String {
             }
         }
     }
-    return String::from("{ \"error\": \"cannot parse\" }");
+    return format!(
+        "{{\"error\": \"issue with ast\", \"details\": {}}}",
+        raw_ast.to_debug_string()
+    );
 }
