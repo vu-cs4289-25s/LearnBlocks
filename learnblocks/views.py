@@ -12,14 +12,15 @@ from .serializers import (BadgeSerializer, ClassSerializer,
                           UserCourseEnrollmentSerializer,
                           UserModuleProgressSerializer)
 
-from rest_framework import generics, views, authentication, exceptions
+from rest_framework import generics, views, authentication, status
 
 from .permissions import permissions
-from .enums import RosterRole, UserRole, CourseVisibility
+from .enums import RosterRole, UserRole, CourseVisibility, ModuleVisibility
 
 from rest_framework.response import Response
 
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 
 
 # --- Authentication ---
@@ -28,7 +29,7 @@ class WhoAmIView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        serializer = UserSerializer(request.user)
+        serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
 
@@ -36,33 +37,26 @@ class WhoAmIView(views.APIView):
 class BadgeListCreateView(generics.ListCreateAPIView):
     queryset = Badge.objects.all()
     serializer_class = BadgeSerializer
-
-    def get_permissions(self):
-        if self.request.method == 'POST':
-            return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
-        return [permissions.IsAuthenticated()]
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                              | permissions.IsReadOnly)]
 
 
 class BadgeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Badge.objects.all()
     serializer_class = BadgeSerializer
     lookup_field = 'badge_id'
-
-    def get_permissions(self):
-        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
-            return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
-        return [permissions.IsAuthenticated()]
+    permission_classes = [permissions.IsReadOnly | permissions.IsAdmin]
 
 
+# --- Classes ---
 class ClassListCreateView(generics.ListCreateAPIView):
     serializer_class = ClassSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_permissions(self):
-        if self.request.method == 'POST':
-            return [permissions.IsAuthenticated(),
-                    permissions.IsTeacherOrAdminUser()]
-        return [permissions.IsAuthenticated()]
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsTeacher
+                             | (permissions.IsStudent
+                                 & permissions.IsReadOnly))]
 
     def get_queryset(self):
         if self.request.user.role == UserRole.ADMIN:
@@ -72,362 +66,575 @@ class ClassListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         class_obj = serializer.save()
-        class_obj.members.add(self.request.user)
+        UserClassRoster.objects.create(user=self.request.user,
+                                       class_field=class_obj,
+                                       role=RosterRole.OWNER)
 
 
-class ClassRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+class ClassDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ClassSerializer
-    queryset = Class.objects.all()
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsClassOwner
+                             | (permissions.IsClassMember
+                                 & permissions.IsReadOnly))]
     lookup_field = 'class_id'
 
-    def get_object(self):
-        obj = super().get_object()
-
-        is_owner = UserClassRoster.objects.filter(
-            user=self.request.user,
-            class_field=obj,
-            role=RosterRole.OWNER
-        ).exists()
-        is_participant = UserClassRoster.objects.filter(
-            user=self.request.user,
-            class_field=obj,
-            role=RosterRole.PARTICIPANT
-        ).exists()
-        is_get = self.request.method == 'GET'
-
-        if not (is_get and is_participant) and not (is_owner):
-            raise exceptions.PermissionDenied(
-                "You must be an owner of this class to modify it.")
-        return obj
-
-
-# --- Module ---
-class ModuleListCreateView(generics.ListCreateAPIView):
-    queryset = Module.objects.all()
-    serializer_class = ModuleSerializer
-
-
-class ModuleRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Module.objects.all()
-    serializer_class = ModuleSerializer
-    lookup_field = 'module_id'
-
-
-# --- Course ---
-class CourseListCreateView(generics.ListCreateAPIView):
-    serializer_class = CourseSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
     def get_queryset(self):
-        user = self.request.user
-        if (user.role != UserRole.Admin):
-            return Course.objects.all()
-        return Course.objects.filter(Q(owner=user) or Q(visibility=CourseVisibility.PUBLIC))
-
-    def perform_create(self, serializer):
-        if (self.request.user.role != UserRole.ADMIN):
-            raise exceptions.PermissionDenied(
-                "You are not authorized to add a course")
-        serializer.save(owner=self.request.user)
+        if self.request.user.role == UserRole.ADMIN:
+            return Class.objects.all()
+        else:
+            return Class.objects.filter(member=self.request.user)
 
 
-class CourseRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = CourseSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    queryset = Course.objects.all()
-
-    def get_object(self):
-        course_id = self.kwargs.get('course_id')
-        assignment_obj = Course.objects.get(course_id=course_id)
-        is_get = self.request.method == 'GET'
-        is_admin = self.request.user.role == UserRole.ADMIN
-
-        if not (is_get) and not (is_admin):
-            raise exceptions.PermissionDenied(
-                "You are not authorized to modify courses.")
-        return assignment_obj
-
-
-# --- ClassModuleAssignment ---
-class ClassModuleAssignmentListCreateView(generics.ListCreateAPIView):
-    serializer_class = ClassModuleAssignmentSerializer
+class ClassJoinView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        class_id = self.kwargs.get('class_id')
-        if not class_id:
-            raise exceptions.ParseError(
-                "Missing required URL parameter: class_id")
-        return ClassModuleAssignment.objects.filter(class_field=class_id)
-
-    def perform_create(self, serializer):
-        class_id = self.kwargs.get('class_id')
-        class_obj = Class.objects.get(class_id=class_id)
-        is_owner = UserClassRoster.objects.filter(
-            user=self.request.user,
-            class_field=class_obj,
-            role=RosterRole.OWNER
-        ).exists()
-        if not is_owner:
-            raise exceptions.PermissionDenied(
-                "You must be an owner of this class to add a module.")
-        serializer.save(class_field=class_obj)
-
-
-class ClassModuleAssignmentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = ClassModuleAssignmentSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        class_id = self.kwargs.get('class_id')
-        if not class_id:
-            raise exceptions.ParseError(
-                "Missing required URL parameter: class_id")
-        return ClassModuleAssignment.objects.filter(class_field=class_id)
-
-    def get_object(self):
-        class_id = self.kwargs.get('class_id')
-        module_id = self.kwargs.get('module_id')
-        assignment_obj = ClassModuleAssignment.objects.get(class_field=class_id,
-                                                           module=module_id)
-        is_owner = UserClassRoster.objects.filter(
-            user=self.request.user,
-            class_field=class_id,
-            role=RosterRole.OWNER
-        ).exists()
-        is_participant = UserClassRoster.objects.filter(
-            user=self.request.user,
-            class_field=class_id,
-            role=RosterRole.PARTICIPANT
-        ).exists()
-        is_get = self.request.method == 'GET'
-
-        if not (is_get and is_participant) and not (is_owner):
-            raise exceptions.PermissionDenied(
-                "You must be an owner of this class to modify its assignments.")
-        return assignment_obj
+    def post(self, request, join_code):
+        class_obj = get_object_or_404(Class.objects, join_code=join_code)
+        UserClassRoster.objects.create(member=self.request.user,
+                                       class_field=class_obj,
+                                       role=RosterRole.PARTICIPANT)
+        return Response({'detail': 'Successfully joined'},
+                        status=status.HTTP_201_CREATED)
 
 
 # --- ClassCourseMapping---
-class ClassCourseMappingListCreateView(generics.ListCreateAPIView):
+class ClassCourseListCreateView(generics.ListCreateAPIView):
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsClassOwner
+                              | (permissions.IsClassMember
+                                  & permissions.IsReadOnly))]
     serializer_class = ClassCourseMappingSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         class_id = self.kwargs.get('class_id')
-        if not class_id:
-            raise exceptions.ParseError(
-                "Missing required URL parameter: class_id")
         return ClassCourseMapping.objects.filter(class_field=class_id)
 
     def perform_create(self, serializer):
         class_id = self.kwargs.get('class_id')
-        class_obj = Class.objects.get(class_id=class_id)
-        is_owner = UserClassRoster.objects.filter(
-            user=self.request.user,
-            class_field=class_obj,
-            role=RosterRole.OWNER
-        ).exists()
-        if not is_owner:
-            raise exceptions.PermissionDenied(
-                "You must be an owner of this class to add a course.")
+        class_obj = get_object_or_404(Class.objects, class_id=class_id)
         serializer.save(class_field=class_obj)
 
 
-class ClassCourseMappingRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class ClassCourseDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ClassCourseMappingSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        class_id = self.kwargs.get('class_id')
-        if not class_id:
-            raise exceptions.ParseError(
-                "Missing required URL parameter: class_id")
-        return ClassCourseMapping.objects.filter(class_field=class_id)
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsClassOwner
+                              | (permissions.IsClassMember
+                                  & permissions.IsReadOnly))]
 
     def get_object(self):
         class_id = self.kwargs.get('class_id')
         course_id = self.kwargs.get('course_id')
         assignment_obj = ClassCourseMapping.objects.get(class_field=class_id,
                                                         course=course_id)
-        is_owner = UserClassRoster.objects.filter(
-            user=self.request.user,
-            class_field=class_id,
-            role=RosterRole.OWNER
-        ).exists()
-        is_participant = UserClassRoster.objects.filter(
-            user=self.request.user,
-            class_field=class_id,
-            role=RosterRole.PARTICIPANT
-        ).exists()
-        is_get = self.request.method == 'GET'
-
-        if not (is_get and is_participant) and not (is_owner):
-            raise exceptions.PermissionDenied(
-                "You must be an owner of this class to modify its assignments.")
         return assignment_obj
 
 
-# --- CourseModuleMapping ---
-class CourseModuleMappingListCreateView(generics.ListCreateAPIView):
+class ClassCourseModuleListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsClassOwner
+                             | permissions.IsClassMember)]
     serializer_class = CourseModuleMappingSerializer
+
+    def get_queryset(self):
+        class_id = self.kwargs.get('class_id')
+        course_id = self.kwargs.get('course_id')
+        class_course = get_object_or_404(ClassCourseMapping.objects,
+                                         class_field=class_id,
+                                         course=course_id)
+        course = class_course.course
+        course_modules = CourseModuleMapping.objects.filter(course=course)
+        return course_modules
+
+
+class ClassCourseModuleDetailView(generics.RetrieveAPIView):
+    serializer_class = CourseModuleMappingSerializer
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsClassOwner
+                              | (permissions.IsClassMember
+                                  & permissions.IsReadOnly))]
+
+    def get_object(self):
+        class_id = self.kwargs.get('class_id')
+        course_id = self.kwargs.get('course_id')
+        module_id = self.kwargs.get('module_id')
+        class_course = get_object_or_404(ClassCourseMapping.objects,
+                                         class_field=class_id,
+                                         course=course_id)
+        course = class_course.course
+        course_module = get_object_or_404(CourseModuleMapping.objects,
+                                          course=course,
+                                          module=module_id)
+        return course_module
+
+
+class ClassCourseModuleSubmissionListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsClassOwner
+                              | permissions.IsClassMember)]
+    serializer_class = ProjectSerializer
+
+    def get_queryset(self):
+        class_id = self.kwargs.get('class_id')
+        course_id = self.kwargs.get('course_id')
+        module_id = self.kwargs.get('module_id')
+
+        members = UserClassRoster.objects.filter(class_field=class_id
+                                                 ).values_list('user',
+                                                               flat=True)
+        class_course = get_object_or_404(ClassCourseMapping.objects,
+                                         class_field=class_id,
+                                         course=course_id)
+        course = class_course.course
+        course_module = get_object_or_404(CourseModuleMapping.objects,
+                                          course=course,
+                                          module=module_id)
+        module = course_module.module
+        submissions = Project.objects.filter(owner__in=members,
+                                             module=module)
+        is_owner = members.filter(role=RosterRole.OWNER,
+                                  user=self.request.user
+                                  ).exists()
+        if not is_owner:
+            submissions = submissions.objects.filter(owner=self.request.user)
+        return submissions
+
+
+class ClassCourseModuleSubmissionDetailView(generics.RetrieveAPIView):
+    serializer_class = ProjectSerializer
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsClassOwner
+                              | (permissions.IsClassMember
+                                  & permissions.IsReadOnly))]
+
+    def get_object(self):
+        class_id = self.kwargs.get('class_id')
+        course_id = self.kwargs.get('course_id')
+        module_id = self.kwargs.get('module_id')
+        project_id = self.kwargs.get('project_id')
+
+        members = UserClassRoster.objects.filter(class_field=class_id
+                                                 ).values_list('user',
+                                                               flat=True)
+        class_course = get_object_or_404(ClassCourseMapping.objects,
+                                         class_field=class_id,
+                                         course=course_id)
+        course = class_course.course
+        course_module = get_object_or_404(CourseModuleMapping.objects,
+                                          course=course,
+                                          module=module_id)
+        module = course_module.module
+        submissions = Project.objects.filter(owner__in=members,
+                                             module=module)
+        is_owner = members.filter(role=RosterRole.OWNER,
+                                  user=self.request.user
+                                  ).exists()
+        if not is_owner:
+            submissions = submissions.objects.filter(owner=self.request.user)
+
+        project = get_object_or_404(submissions,
+                                    module=module,
+                                    project_id=project_id)
+        return project
+
+
+# --- ClassModuleAssignment ---
+class ClassModuleListCreateView(generics.ListCreateAPIView):
+    serializer_class = ClassModuleAssignmentSerializer
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsClassOwner
+                             | (permissions.IsClassMember
+                                 & permissions.IsReadOnly))]
+
+    def get_queryset(self):
+        class_id = self.kwargs.get('class_id')
+        return ClassModuleAssignment.objects.filter(class_field=class_id)
+
+    def perform_create(self, serializer):
+        class_id = self.kwargs.get('class_id')
+        class_obj = get_object_or_404(Class.objects, class_id=class_id)
+        serializer.save(class_field=class_obj)
+
+
+class ClassModuleDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsClassOwner
+                             | (permissions.IsClassMember
+                                 & permissions.IsReadOnly))]
+    serializer_class = ClassModuleAssignmentSerializer
+
+    def get_object(self):
+        class_id = self.kwargs.get('class_id')
+        module_id = self.kwargs.get('module_id')
+        assignment_obj = get_object_or_404(ClassModuleAssignment.objects,
+                                           module=module_id,
+                                           class_field=class_id)
+        return assignment_obj
+
+
+class ClassModuleSubmissionListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsClassOwner
+                              | permissions.IsClassMember)]
+    serializer_class = ProjectSerializer
+
+    def get_queryset(self):
+        class_id = self.kwargs.get('class_id')
+        module_id = self.kwargs.get('module_id')
+
+        members = UserClassRoster.objects.filter(class_field=class_id
+                                                 ).values_list('user',
+                                                               flat=True)
+        class_module = get_object_or_404(ClassModuleAssignment.objects,
+                                         class_field=class_id,
+                                         module=module_id)
+        module = class_module.module
+        submissions = Project.objects.filter(owner__in=members,
+                                             module=module)
+        is_owner = members.filter(role=RosterRole.OWNER,
+                                  user=self.request.user
+                                  ).exists()
+        if not is_owner:
+            submissions = submissions.objects.filter(owner=self.request.user)
+        return submissions
+
+
+class ClassModuleSubmissionDetailView(generics.RetrieveAPIView):
+    serializer_class = ProjectSerializer
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsClassOwner
+                              | (permissions.IsClassMember
+                                  & permissions.IsReadOnly))]
+
+    def get_object(self):
+        class_id = self.kwargs.get('class_id')
+        module_id = self.kwargs.get('module_id')
+        project_id = self.kwargs.get('project_id')
+
+        members = UserClassRoster.objects.filter(class_field=class_id
+                                                 ).values_list('user',
+                                                               flat=True)
+
+        class_module = get_object_or_404(ClassModuleAssignment.objects,
+                                         class_field=class_id,
+                                         module=module_id)
+        module = class_module.module
+        submissions = Project.objects.filter(owner__in=members,
+                                             module=module)
+
+        is_owner = members.filter(role=RosterRole.OWNER,
+                                  user=self.request.user
+                                  ).exists()
+        print(submissions)
+        if not is_owner:
+            submissions = submissions.objects.filter(owner=self.request.user)
+
+        project = get_object_or_404(submissions,
+                                    project_id=project_id)
+        return project
+
+
+class ClassMemberListView(generics.ListAPIView):
+    serializer_class = UserClassRosterSerializer
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsClassOwner
+                             | permissions.IsClassMember)]
+
+    def get_queryset(self):
+        class_id = self.kwargs.get('class_id')
+        return UserClassRoster.objects.filter(class_field=class_id)
+
+
+class ClassMemberDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = UserClassRosterSerializer
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsClassOwner
+                             | (permissions.IsClassMember
+                                 & permissions.IsReadOnly))]
+
+    def get_object(self):
+        class_id = self.kwargs.get('class_id')
+        username = self.kwargs.get('username')
+        roster_entry = get_object_or_404(UserClassRoster.objects,
+                                         class_field=class_id,
+                                         user=username)
+        return roster_entry
+
+
+# --- Course ---
+class CourseListCreateView(generics.ListCreateAPIView):
+    serializer_class = CourseSerializer
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsReadOnly)]
+
+    def get_queryset(self):
+        user = self.request.user
+        public = CourseVisibility.PUBLIC
+        if (user.role == UserRole.ADMIN):
+            return Course.objects.all()
+        else:
+            return Course.objects.filter(Q(owner=user) | Q(visibility=public))
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+class CourseDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CourseSerializer
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                              | permissions.IsReadOnly)]
+    lookup_field = 'course_id'
+
+    def get_queryset(self):
+        user = self.request.user
+        public = CourseVisibility.PUBLIC
+        if (user.role == UserRole.ADMIN):
+            return Course.objects.all()
+        else:
+            return Course.objects.filter(Q(owner=user) | Q(visibility=public))
+
+
+class CourseEnrollView(generics.CreateAPIView):
+    serializer_class = UserCourseEnrollment
     permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        course_id = self.kwargs.get('course_id')
+        serializer.save(course=course_id,
+                        user=self.request.user)
+
+
+# --- CourseModuleMapping ---
+class CourseModuleListCreateView(generics.ListCreateAPIView):
+    serializer_class = CourseModuleMappingSerializer
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsCourseOwner
+                             | permissions.IsReadOnly)]
 
     def get_queryset(self):
         course_id = self.kwargs.get('course_id')
-        if not course_id:
-            raise exceptions.ParseError(
-                "Missing required URL parameter: course_id")
         return CourseModuleMapping.objects.filter(course=course_id)
 
     def perform_create(self, serializer):
         course_id = self.kwargs.get('course_id')
-        is_owner = Course.objects.filter(
-            course_id=course_id,
-            owner=self.request.user
-        ).exists()
-        if not is_owner:
-            raise exceptions.PermissionDenied(
-                "You must be the owner to add a module to a course")
-        serializer.save()
+        serializer.save(course=course_id)
 
 
-class CourseModuleMappingRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class CourseModuleDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CourseModuleMappingSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        course_id = self.kwargs.get('course_id')
-        if not course_id:
-            raise exceptions.ParseError(
-                "Missing required URL parameter: course_id")
-        return CourseModuleMapping.objects.filter(course=course_id)
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsCourseOwner
+                             | permissions.IsReadOnly)]
 
     def get_object(self):
         course_id = self.kwargs.get('course_id')
         module_id = self.kwargs.get('module_id')
-        entry_obj = CourseModuleMapping.objects.get(course=course_id,
-                                                    module=module_id)
-        is_owner = Course.objects.filter(
-            course_id=course_id,
-            owner=self.request.user
-        ).exists()
-        is_get = self.request.method == 'GET'
-
-        if not (is_get) and not (is_owner):
-            raise exceptions.PermissionDenied(
-                "You must be an owner of this course to modify its modules.")
+        entry_obj = get_object_or_404(CourseModuleMapping.objects,
+                                      course=course_id,
+                                      module=module_id)
         return entry_obj
+
+
+class CourseModuleSubmissionListView(generics.ListAPIView):
+    serializer_class = ProjectSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        course_id = self.kwargs.get('course_id')
+        module_id = self.kwargs.get('module_id')
+
+        course_module = get_object_or_404(CourseModuleMapping.objects,
+                                          course=course_id,
+                                          module=module_id)
+        module = course_module.module
+        is_admin = self.request.user.role == UserRole.ADMIN
+        submissions = Project.objects.filter(module=module)
+        if not is_admin:
+            submissions = submissions.filter(owner=self.request.user)
+        return submissions
+
+
+class CourseModuleSubmissionDetailView(generics.RetrieveAPIView):
+    serializer_class = ProjectSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        course_id = self.kwargs.get('course_id')
+        module_id = self.kwargs.get('module_id')
+        project_id = self.kwargs.get('project_id')
+
+        course_module = get_object_or_404(CourseModuleMapping.objects,
+                                          course=course_id,
+                                          module=module_id)
+        module = course_module.module
+        is_admin = self.request.user.role == UserRole.ADMIN
+        submissions = Project.objects.filter(module=module)
+        if not is_admin:
+            submissions = submissions.filter(owner=self.request.user)
+        project = get_object_or_404(submissions,
+                                    module=module,
+                                    project_id=project_id)
+        return project
+
+
+# --- Module ---
+class ModuleListCreateView(generics.ListCreateAPIView):
+    serializer_class = ModuleSerializer
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsReadOnly)]
+
+    def get_queryset(self):
+        user = self.request.user
+        public = ModuleVisibility.PUBLIC
+        if (user.role == UserRole.ADMIN):
+            return Module.objects.all()
+        else:
+            return Module.objects.filter(Q(owner=user) | Q(visibility=public))
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+class ModuleDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ModuleSerializer
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsReadOnly)]
+    lookup_field = 'module_id'
+
+    def get_queryset(self):
+        user = self.request.user
+        public = ModuleVisibility.PUBLIC
+        if (user.role == UserRole.ADMIN):
+            return Module.objects.all()
+        else:
+            return Module.objects.filter(Q(owner=user) | Q(visibility=public))
+
+
+class UserModuleListCreateView(generics.ListCreateAPIView):
+    serializer_class = UserModuleProgress
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'module_id'
+
+    def get_queryset(self):
+        user = self.request.user
+        modules = UserModuleProgress.objects.filter(user=user)
+        return modules
+
+
+class ModuleSubmissionListCreateView(generics.ListCreateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ProjectSerializer
+
+    def get_queryset(self):
+        module_id = self.kwargs.get('module_id')
+
+        is_admin = self.request.user.role == UserRole.ADMIN
+        submissions = Project.objects.filter(module=module_id)
+        if not is_admin:
+            submissions = submissions.filter(owner=self.request.user)
+        return submissions
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        module_id = self.kwargs.get('module_id')
+        module = get_object_or_404(Module.objects, module_id=module_id)
+        serializer.save(module=module, owner=user)
+
+
+class ModuleSubmissionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ProjectSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        module_id = self.kwargs.get('module_id')
+        project_id = self.kwargs.get('project_id')
+
+        is_admin = self.request.user.role == UserRole.ADMIN
+        submissions = Project.objects.all()
+        if not is_admin:
+            submissions = submissions.filter(owner=self.request.user)
+        project = get_object_or_404(submissions,
+                                    module=module_id,
+                                    project_id=project_id)
+        return project
+
+    def perform_destroy(self, instance: Project):
+        instance.module = None
+        instance.save()
 
 
 # --- Project ---
 class ProjectListCreateView(generics.ListCreateAPIView):
-    queryset = Project.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = ProjectSerializer
 
+    def get_queryset(self):
+        user = self.request.user
+        if (user.role != UserRole.ADMIN):
+            return Project.objects.all()
+        return Project.objects.filter(owner=user)
 
-class ProjectRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Project.objects.all()
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(owner=user)
+        pass
+
+
+class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsProjectOwner)]
     serializer_class = ProjectSerializer
+    queryset = Project.objects.all()
     lookup_field = 'project_id'
 
 
 # --- User ---
 class UserListCreateView(generics.ListCreateAPIView):
-    queryset = User.objects.all()
     serializer_class = UserSerializer
+    queryset = User.objects.all()
+    permission_classes = [~permissions.IsReadOnly
+                          | permissions.IsAuthenticated]
 
 
-class UserRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated
+                          & (permissions.IsAdmin
+                             | permissions.IsSelf)]
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    lookup_field = 'user_id'
+    lookup_field = 'username'
 
 
 # --- UserBadgeAchievement ---
-class UserBadgeAchievementListCreateView(generics.ListCreateAPIView):
+class UserBadgeListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
     queryset = UserBadgeAchievement.objects.all()
     serializer_class = UserBadgeAchievementSerializer
 
 
-class UserBadgeAchievementRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class UserBadgeDetailView(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
     queryset = UserBadgeAchievement.objects.all()
     serializer_class = UserBadgeAchievementSerializer
     lookup_field = 'achievement_id'
-
-
-# --- UserClassRoster ---
-class UserClassRosterListCreateView(generics.ListCreateAPIView):
-    queryset = UserClassRoster.objects.all()
-    serializer_class = UserClassRosterSerializer
-
-
-class UserClassRosterRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = UserClassRoster.objects.all()
-    serializer_class = UserClassRosterSerializer
-    lookup_field = 'user'
-
-
-# --- UserCourseEnrollment ---
-class UserCourseEnrollmentListCreateView(generics.ListCreateAPIView):
-    queryset = UserCourseEnrollment.objects.all()
-    serializer_class = UserCourseEnrollmentSerializer
-
-
-class UserCourseEnrollmentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = UserCourseEnrollment.objects.all()
-    serializer_class = UserCourseEnrollmentSerializer
-    lookup_field = 'user'
-
-
-# --- UserModuleProgress ---
-class UserModuleProgressListCreateView(generics.ListCreateAPIView):
-    queryset = UserModuleProgress.objects.all()
-    serializer_class = UserModuleProgressSerializer
-
-
-class UserModuleProgressRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = UserModuleProgress.objects.all()
-    serializer_class = UserModuleProgressSerializer
-    lookup_field = 'progress_id'
-
-
-class UserProjectsListView(generics.ListAPIView):
-    serializer_class = ProjectSerializer
-
-    def get_queryset(self):
-        user_id = self.kwargs.get('user_id')
-        return Project.objects.filter(user_id=user_id)
-
-
-class UserBadgesListView(generics.ListAPIView):
-    serializer_class = BadgeSerializer
-
-    def get_queryset(self):
-        user_id = self.kwargs.get('user_id')
-        return Badge.objects.filter(userbadgeachievement__user_id=user_id)
-
-
-class UserCoursesListView(generics.ListAPIView):
-    """
-    GET /courses/user/{user_id}/
-    Returns all courses where Course.owner_id matches the given ownerid.
-    """
-    serializer_class = CourseSerializer
-
-    def get_queryset(self):
-        user_id = self.kwargs.get('user_id')
-        return Course.objects.filter(owner_id=user_id)
-
-
-class UserModulesListView(generics.ListAPIView):
-    """
-    GET /modules/user/{user_id}/
-    Returns all modules where Module.owner_id matches the given ownerid.
-    """
-    serializer_class = ModuleSerializer
-
-    def get_queryset(self):
-        user_id = self.kwargs.get('user_id')
-        return Module.objects.filter(owner_id=user_id)
