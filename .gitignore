@@ -9,3 +9,4 @@ frontend/build
 frontend/src/lib/blockly-transpiler/target
 **/__pycache__/
 learnblocks/migrations
+!learnblocks/migrations/__init__.py
