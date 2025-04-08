@@ -101,7 +101,7 @@ urlpatterns = [
     path('users/<uuid:user_id>/courses',
          views.UserCoursesListView.as_view(),
          name='user_courses_list'),
-    path('users/<uuid:user_id>/moduels',
+    path('users/<uuid:user_id>/modules',
          views.UserModulesListView.as_view(),
          name='user_modules_list'),
 

@@ -89,3 +89,24 @@ export const tryGetModules = async () => {
     return new Error(`Failed to get Modules List: ${err}`)    
   }
 }
+
+export const tryJoinClass = async (authUser, classCode) =>{
+  const classId= classCode; //Change it to tryGetClassCode(classId) later
+  const req={
+    user:authUser.username,
+    class_field:classId,
+    role:authUser.role,
+  }
+  try{
+    const res = await fetch(`${import.meta.env.VITE_CLOUD}/user-class-rosters/`,{
+      method: "POST",
+      body: JSON.stringify(req),
+      headers: { "content-type": "application/json" },
+    });
+    const json = await res.json()
+    return json;
+  }
+  catch(err){
+    return new Error(`Failed to Join Class: ${err}`);
+  }
+}
