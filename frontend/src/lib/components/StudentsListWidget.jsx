@@ -38,10 +38,10 @@ export default function StudentsListWidget({ className }) {
       </ul>
 
       <Link
-        className="transition-color my-1 w-1/2 self-center rounded-full border-2 border-amber-400 text-center shadow-amber-300/50 duration-100 hover:bg-amber-400 hover:shadow active:bg-amber-500 text-white"
-        to="/t/classes"
+        className="transition-color mt-4 w-40 self-center rounded-full border border-amber-400 text-center px-3 py-1 text-sm text-white shadow-sm duration-100 hover:bg-amber-400 hover:text-black hover:shadow-md active:bg-amber-500"
+        to="/t/home"
       >
-        Back to Classes
+        Back to Home
       </Link>
     </section>
   );

@@ -75,12 +75,11 @@ export default function ClassStudentDetailWidget({ className }) {
         </div>
       </div>
 
-      <div className="mt-4 flex justify-center">
+      <div className="mt-6 flex justify-center">
         <Link
           to={`/t/classes/${classid}/students`}
-          className="text-white underline hover:text-amber-400"
-        >
-          back
+          className="transition-color w-40 rounded-full border border-amber-400 text-center px-3 py-1 text-sm text-white shadow-sm duration-100 hover:bg-amber-400 hover:text-black hover:shadow-md active:bg-amber-500">
+          Back
         </Link>
       </div>
     </section>

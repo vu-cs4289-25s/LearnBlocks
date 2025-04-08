@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 export default function ClassesWidget({ className }) {
   const data = [];
   for (let i = 0; i < 10; i++) {
-    if (i % 6 === 0) data.push(new Array());
+    if (i % 6 === 0) data.push([]);
     data.at(-1).push({
       course_id: i,
       name: 'Class ' + i,
@@ -23,10 +23,12 @@ export default function ClassesWidget({ className }) {
 
   return (
     <main className={className}>
-      <ul className="flex-1">
+      <h1 className="text-xl font-bold text-white mb-2">Classes</h1>
+      <hr className="text-zinc-400 mb-2" />
+
+      <ul className="flex flex-col gap-2 flex-1">
         {data[page - 1].map((course, key) => (
-          <li className="m-2 h-1/7 rounded bg-zinc-900 p-2" key={key}>
-            {/* View button in top-right */}
+          <li className="rounded bg-zinc-900 p-2" key={key}>
             <div className="mb-2 flex items-center justify-between">
               <h1 className="text-md font-semibold">{course.name}</h1>
               <Link
@@ -41,7 +43,6 @@ export default function ClassesWidget({ className }) {
           </li>
         ))}
       </ul>
-
       <PageSelector page={page} setPage={setPage} arr={data} />
     </main>
   );
