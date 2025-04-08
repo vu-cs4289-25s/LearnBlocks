@@ -30,6 +30,13 @@ fn is_reserved_word(keyword: &str) -> Option<&str> {
     }
 }
 
+fn is_reserved_function(keyword: &str) -> Option<&str> {
+    match keyword {
+        "print" | "range" => Some(keyword),
+        _ => None
+    }
+}
+
 fn insert_next_block(cur: String, insert: String) -> String {
     let next = format!(",\"next\": {{\"block\" : {}}}", insert);
     let mut cur_bytes = Vec::from(cur.as_bytes());
@@ -134,6 +141,28 @@ fn create_variable_set_block(target: String, value: String) -> String {
     format!("{{\"type\":\"variables_set\",\"inputs\":{},\"fields\":{}}}", input, fields)
 }
 
+fn create_for_range_block(
+    target: String, 
+    body: String, 
+    from: String, 
+    to: String, 
+    by: String
+) -> String {
+    let vars = VARIABLES_CONTAINER.lock().unwrap();
+    let binding = String::from("");
+    let var_id = vars.get(&target).unwrap_or(&binding);
+    let fields = format!("{{ \"VAR\": {{\"id\":\"{}\"}}}}", var_id);
+    let input = format!(
+        "{{\"FROM\":{{\"block\":{}}},\"TO\":{{\"block\":{}}},\"DO\":{{\"block\":{}}}, \"BY\":{{\"block\":{}}}}}", 
+        from,
+        to,
+        body,
+        by
+    );
+    drop(vars);
+    format!("{{\"type\":\"controls_for\",\"inputs\":{},\"fields\":{}}}", input, fields)
+}
+
 fn parse_assign(assign_stmt: &ast::StmtAssign) -> Result<String, String> {
     if assign_stmt.targets.len() != 1 {
         return Err(String::from("invalid number of arguments to assignstatement"));
@@ -145,6 +174,36 @@ fn parse_assign(assign_stmt: &ast::StmtAssign) -> Result<String, String> {
     } else {
         Err(assign_stmt.to_debug_string())
     }
+}
+
+fn parse_for(for_stmt: &ast::StmtFor) -> Result<String, String> {
+    if for_stmt.orelse.len() > 0 {
+        return Err(String::from("does not support else statements in for loops"));
+    }
+
+    let target = parse_expr(&for_stmt.target);
+    let iter = parse_expr(&for_stmt.iter);
+    let body = join_statements(&for_stmt.body);
+    if target.is_err() || iter.is_err() || body.is_err() {
+        return Err(for_stmt.to_debug_string());
+    }
+
+    if let ast::Expr::Call(_) = *for_stmt.iter {
+        let binding = iter.unwrap();
+        let iter_vec: Vec<_> = binding.split(",-").collect();
+        if iter_vec[0] == "range" {
+            let from = String::from(iter_vec[1]);
+            let to = String::from(iter_vec[2]);
+            let by = if iter_vec.len() >= 4 {
+                String::from(iter_vec[3])
+            } else {
+                String::from("{\"type\":\"math_number\",\"fields\":{\"NUM\": 1}}")
+            };
+            return Ok(create_for_range_block(target?, body?, from, to, by));
+        }
+    }
+
+    return Err(for_stmt.to_debug_string());
 }
 
 fn parse_while(while_stmt: &ast::StmtWhile) -> Result<String, String> {
@@ -240,7 +299,7 @@ fn parse_expr_call(expr_call: &ast::ExprCall) -> Result<String, String> {
         }
     }
 
-    if name.unwrap().as_str() == "print" {
+    if name.clone().unwrap().as_str() == "print" {
         let text_block = if args.len() == 0 {
             create_text_block(String::from("\' \'"))
         } else {
@@ -248,6 +307,18 @@ fn parse_expr_call(expr_call: &ast::ExprCall) -> Result<String, String> {
         };
         let input = format!("{{ \"TEXT\" : {{ \"block\" : {} }} }}", text_block);
         return Ok(format!("{{ \"type\": \"text_print\", \"inputs\": {} }}", input));
+    } else if name.clone().unwrap().as_str() == "range" {
+        if args.len() >= 3 {
+            return Ok(
+                format!(
+                    "range,-{},-{},-{}", 
+                    args[0].clone().unwrap(), 
+                    args[1].clone().unwrap(),
+                    args[2].clone().unwrap()
+                )
+            );
+        }
+        return Ok(format!("range,-{},-{}", args[0].clone().unwrap(), args[1].clone().unwrap()));
     }
 
     Ok(String::from(format!("{}", args.to_debug_string())))
@@ -311,7 +382,7 @@ fn parse_expr_if_exp(expr_if_exp: &ast::ExprIfExp) -> Result<String, String> {
 
 fn parse_expr_name(expr_name: &ast::ExprName) -> Result<String, String> {
     let identifier = expr_name.id.as_str();
-    if is_reserved_word(identifier).is_none() {
+    if is_reserved_word(identifier).is_none() && is_reserved_function(identifier).is_none() {
         let mut vars = VARIABLES_CONTAINER.lock().unwrap();
         if vars.get(identifier.into()).is_none() {
             let id = GEN.next_id();
@@ -358,7 +429,7 @@ fn parse_statement(stmt: &ast::Stmt) -> Result<String, String> {
         ast::Stmt::Assign(s) => parse_assign(&s),
         ast::Stmt::AugAssign(_) => Ok(String::from("{aug assign}")),
         ast::Stmt::AnnAssign(_) => Ok(String::from("{ann assign}")),
-        ast::Stmt::For(_) => Ok(String::from("{for}")),
+        ast::Stmt::For(s) => parse_for(&s),
         ast::Stmt::While(s) => parse_while(&s),
         ast::Stmt::If(s) => parse_if(&s),
         ast::Stmt::With(_) => Ok(String::from("{with}")),
