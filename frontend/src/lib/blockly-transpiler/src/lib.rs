@@ -132,13 +132,10 @@ fn create_while_block(test: String, body: String) -> String {
 }
 
 fn create_variable_set_block(target: String, value: String) -> String {
-    let vars = VARIABLES_CONTAINER.lock().unwrap();
-    let binding = String::from("");
-    let var_id = vars.get(&target).unwrap_or(&binding);
+    let mut fields = String::from(&target[24..]);
+    fields.pop();
     let input = format!("{{\"VALUE\":{{\"block\":{}}}}}", value);
-    let fields = format!("{{ \"VAR\": {{\"id\":\"{}\"}}}}", var_id);
-    drop(vars);
-    format!("{{\"type\":\"variables_set\",\"inputs\":{},\"fields\":{}}}", input, fields)
+    format!("{{\"type\":\"variables_set\",\"inputs\":{},{}}}", input, fields)
 }
 
 fn create_for_range_block(
@@ -148,10 +145,6 @@ fn create_for_range_block(
     to: String, 
     by: String
 ) -> String {
-    let vars = VARIABLES_CONTAINER.lock().unwrap();
-    let binding = String::from("");
-    let var_id = vars.get(&target).unwrap_or(&binding);
-    let fields = format!("{{ \"VAR\": {{\"id\":\"{}\"}}}}", var_id);
     let input = format!(
         "{{\"FROM\":{{\"block\":{}}},\"TO\":{{\"block\":{}}},\"DO\":{{\"block\":{}}}, \"BY\":{{\"block\":{}}}}}", 
         from,
@@ -159,8 +152,16 @@ fn create_for_range_block(
         body,
         by
     );
-    drop(vars);
-    format!("{{\"type\":\"controls_for\",\"inputs\":{},\"fields\":{}}}", input, fields)
+    format!("{{\"type\":\"controls_for\",\"inputs\":{},{}}}", input, target)
+}
+
+fn create_for_each_block(target: String, body: String, list: String) -> String {
+    let input = format!(
+        "{{\"DO\":{{\"block\":{}}}, \"LIST\":{{\"block\":{}}}}}", 
+        body,
+        list
+    );
+    format!("{{\"type\":\"controls_forEach\",\"inputs\":{},{}}}", input, target)
 }
 
 fn parse_assign(assign_stmt: &ast::StmtAssign) -> Result<String, String> {
@@ -188,6 +189,9 @@ fn parse_for(for_stmt: &ast::StmtFor) -> Result<String, String> {
         return Err(for_stmt.to_debug_string());
     }
 
+    let mut fields = String::from(&(target?)[24..]);
+    fields.pop();
+
     if let ast::Expr::Call(_) = *for_stmt.iter {
         let binding = iter.unwrap();
         let iter_vec: Vec<_> = binding.split(",-").collect();
@@ -199,8 +203,11 @@ fn parse_for(for_stmt: &ast::StmtFor) -> Result<String, String> {
             } else {
                 String::from("{\"type\":\"math_number\",\"fields\":{\"NUM\": 1}}")
             };
-            return Ok(create_for_range_block(target?, body?, from, to, by));
+            return Ok(create_for_range_block(fields, body?, from, to, by));
         }
+    } else if let ast::Expr::Name(_) = *for_stmt.iter {
+        let binding = iter.unwrap();
+        return Ok(create_for_each_block(fields, body?, binding));
     }
 
     return Err(for_stmt.to_debug_string());
@@ -388,7 +395,13 @@ fn parse_expr_name(expr_name: &ast::ExprName) -> Result<String, String> {
             let id = GEN.next_id();
             vars.insert(String::from(identifier), id);
         }
-        drop(vars);
+        let id = vars.get(identifier.into());
+        return Ok(
+            format!(
+                "{{\"type\":\"variables_get\",\"fields\":{{\"VAR\":{{\"id\":\"{}\"}}}}}}", 
+                id.unwrap()
+            )
+        );
     }
     return Ok(String::from(identifier));
 }
