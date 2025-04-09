@@ -164,6 +164,17 @@ fn create_for_each_block(target: String, body: String, list: String) -> String {
     format!("{{\"type\":\"controls_forEach\",\"inputs\":{},{}}}", input, target)
 }
 
+fn create_change_variable_block(target: String, value: String) -> String {
+    let mut fields = String::from(&target[24..]);
+    fields.pop();
+    let input = format!("{{\"block\":{}}}", value);
+    format!(
+        "{{\"type\":\"math_change\",\"inputs\":{{\"DELTA\":{}}},{}}}", 
+        input, 
+        fields
+    )
+}
+
 fn parse_assign(assign_stmt: &ast::StmtAssign) -> Result<String, String> {
     if assign_stmt.targets.len() != 1 {
         return Err(String::from("invalid number of arguments to assignstatement"));
@@ -174,6 +185,24 @@ fn parse_assign(assign_stmt: &ast::StmtAssign) -> Result<String, String> {
         Ok(create_variable_set_block(target, value))
     } else {
         Err(assign_stmt.to_debug_string())
+    }
+}
+
+fn parse_aug_assign(aug_assign_stmt: &ast::StmtAugAssign) -> Result<String, String> {
+    let target = parse_expr(&aug_assign_stmt.target);
+    let raw_value = parse_expr(&aug_assign_stmt.value);
+    if let (Ok(target), Ok(raw_value))  = (target, raw_value) {
+        let value = match aug_assign_stmt.op {
+            ast::Operator::Add | ast::Operator::Mult | 
+            ast::Operator::Pow | ast::Operator::Mod => raw_value.clone(),
+            _ => format!(
+                "{{\"type\":\"math_single\",\"fields\":{{\"OP\":\"NEG\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}} }}}}",
+                raw_value.clone()
+            )
+        };
+        Ok(create_change_variable_block(target, value))
+    } else {
+        Err(aug_assign_stmt.to_debug_string())
     }
 }
 
@@ -440,7 +469,7 @@ fn parse_statement(stmt: &ast::Stmt) -> Result<String, String> {
         ast::Stmt::Return(_) => Ok(String::from("{return def}")),
         ast::Stmt::Delete(_) => Ok(String::from("{delete}")),
         ast::Stmt::Assign(s) => parse_assign(&s),
-        ast::Stmt::AugAssign(_) => Ok(String::from("{aug assign}")),
+        ast::Stmt::AugAssign(s) => parse_aug_assign(&s),
         ast::Stmt::AnnAssign(_) => Ok(String::from("{ann assign}")),
         ast::Stmt::For(s) => parse_for(&s),
         ast::Stmt::While(s) => parse_while(&s),
