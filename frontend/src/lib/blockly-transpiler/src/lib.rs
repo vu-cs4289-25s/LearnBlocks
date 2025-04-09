@@ -32,7 +32,7 @@ fn is_reserved_word(keyword: &str) -> Option<&str> {
 
 fn is_reserved_function(keyword: &str) -> Option<&str> {
     match keyword {
-        "print" | "range" => Some(keyword),
+        "print" | "range" | "math" => Some(keyword),
         _ => None
     }
 }
@@ -278,6 +278,16 @@ fn parse_if(if_stmt: &ast::StmtIf) -> Result<String, String> {
     }
 }
 
+fn parse_expr_attribute(expr_attribute: &ast::ExprAttribute) -> Result<String, String> {
+    let value = parse_expr(&expr_attribute.value);
+    let attr = String::from(expr_attribute.attr.as_str());
+    if let Ok(value) = value {
+        Ok(format!("{}.{}", value, attr))
+    } else {
+        Err(expr_attribute.to_debug_string())
+    }
+}
+
 fn parse_expr_bin_op(expr_bin_op: &ast::ExprBinOp) -> Result<String, String> {
     let left = parse_expr(&expr_bin_op.left);
     if left.is_err() {
@@ -355,6 +365,48 @@ fn parse_expr_call(expr_call: &ast::ExprCall) -> Result<String, String> {
             );
         }
         return Ok(format!("range,-{},-{}", args[0].clone().unwrap(), args[1].clone().unwrap()));
+    } else if name.clone().unwrap().as_str() == "math.sin" {
+        return Ok(
+            format!(
+                "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"SIN\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                args[0].clone().unwrap()
+            )
+        );
+    } else if name.clone().unwrap().as_str() == "math.cos" {
+        return Ok(
+            format!(
+                "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"COS\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                args[0].clone().unwrap()
+            )
+        );
+    } else if name.clone().unwrap().as_str() == "math.tan" {
+        return Ok(
+            format!(
+                "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"TAN\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                args[0].clone().unwrap()
+            )
+        );
+    } else if name.clone().unwrap().as_str() == "math.asin" {
+        return Ok(
+            format!(
+                "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"ASIN\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                args[0].clone().unwrap()
+            )
+        );
+    } else if name.clone().unwrap().as_str() == "math.acos" {
+        return Ok(
+            format!(
+                "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"ACOS\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                args[0].clone().unwrap()
+            )
+        );
+    } else if name.clone().unwrap().as_str() == "math.atan" {
+        return Ok(
+            format!(
+                "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"ATAN\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                args[0].clone().unwrap()
+            )
+        );
     }
 
     Ok(String::from(format!("{}", args.to_debug_string())))
@@ -451,6 +503,7 @@ fn parse_expr_unary_op(expr_unary_op: &ast::ExprUnaryOp) -> Result<String, Strin
 
 fn parse_expr(expr: &ast::Expr) -> Result<String, String> {
     match expr {
+        ast::Expr::Attribute(expr_attribute) => parse_expr_attribute(&expr_attribute),
         ast::Expr::BinOp(expr_bin_op) => parse_expr_bin_op(&expr_bin_op),
         ast::Expr::BoolOp(expr_bool_op) => parse_expr_bool_op(&expr_bool_op),
         ast::Expr::Call(expr_call) => parse_expr_call(&expr_call),
