@@ -32,7 +32,7 @@ fn is_reserved_word(keyword: &str) -> Option<&str> {
 
 fn is_reserved_function(keyword: &str) -> Option<&str> {
     match keyword {
-        "print" | "range" | "math" => Some(keyword),
+        "print" | "range" | "math" | "round" => Some(keyword),
         _ => None
     }
 }
@@ -345,71 +345,143 @@ fn parse_expr_call(expr_call: &ast::ExprCall) -> Result<String, String> {
         }
     }
 
-    if name.clone().unwrap().as_str() == "print" {
-        let text_block = if args.len() == 0 {
-            create_text_block(String::from("\' \'"))
-        } else {
-            create_text_block(args[0].clone().unwrap())
-        };
-        let input = format!("{{ \"TEXT\" : {{ \"block\" : {} }} }}", text_block);
-        return Ok(format!("{{ \"type\": \"text_print\", \"inputs\": {} }}", input));
-    } else if name.clone().unwrap().as_str() == "range" {
-        if args.len() >= 3 {
-            return Ok(
+    match name.clone().unwrap().as_str() {
+        "print" => {
+            let text_block = if args.len() == 0 {
+                create_text_block(String::from("\' \'"))
+            } else {
+                create_text_block(args[0].clone().unwrap())
+            };
+            let input = format!("{{ \"TEXT\" : {{ \"block\" : {} }} }}", text_block);
+            Ok(format!("{{ \"type\": \"text_print\", \"inputs\": {} }}", input))
+        },
+        "range" => {
+            if args.len() >= 3 {
+                return Ok(
+                    format!(
+                        "range,-{},-{},-{}", 
+                        args[0].clone().unwrap(), 
+                        args[1].clone().unwrap(),
+                        args[2].clone().unwrap()
+                    )
+                );
+            }
+            Ok(format!("range,-{},-{}", args[0].clone().unwrap(), args[1].clone().unwrap()))
+        },
+        "math.sin" => {
+            Ok(
                 format!(
-                    "range,-{},-{},-{}", 
-                    args[0].clone().unwrap(), 
-                    args[1].clone().unwrap(),
-                    args[2].clone().unwrap()
+                    "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"SIN\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
                 )
-            );
+            )
+        },
+        "math.cos" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"COS\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        },
+        "math.tan" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"TAN\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        },
+        "math.asin" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"ASIN\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        },
+        "math.acos" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"ACOS\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        },
+        "math.atan" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"ATAN\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        },
+        "math.sqrt" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_single\",\"fields\":{{\"OP\":\"ROOT\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        },
+        "math.fabs" | "math.abs" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_single\",\"fields\":{{\"OP\":\"ABS\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        },
+        "math.log" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_single\",\"fields\":{{\"OP\":\"LN\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        },
+        "math.log10" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_single\",\"fields\":{{\"OP\":\"LOG10\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        },
+        "math.exp" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_single\",\"fields\":{{\"OP\":\"EXP\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        },
+        "round" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_round\",\"fields\":{{\"OP\":\"ROUND\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        },
+        "math.ceil" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_round\",\"fields\":{{\"OP\":\"ROUNDUP\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        },
+        "math.floor" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_round\",\"fields\":{{\"OP\":\"ROUNDDOWN\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
         }
-        return Ok(format!("range,-{},-{}", args[0].clone().unwrap(), args[1].clone().unwrap()));
-    } else if name.clone().unwrap().as_str() == "math.sin" {
-        return Ok(
-            format!(
-                "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"SIN\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
-                args[0].clone().unwrap()
-            )
-        );
-    } else if name.clone().unwrap().as_str() == "math.cos" {
-        return Ok(
-            format!(
-                "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"COS\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
-                args[0].clone().unwrap()
-            )
-        );
-    } else if name.clone().unwrap().as_str() == "math.tan" {
-        return Ok(
-            format!(
-                "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"TAN\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
-                args[0].clone().unwrap()
-            )
-        );
-    } else if name.clone().unwrap().as_str() == "math.asin" {
-        return Ok(
-            format!(
-                "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"ASIN\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
-                args[0].clone().unwrap()
-            )
-        );
-    } else if name.clone().unwrap().as_str() == "math.acos" {
-        return Ok(
-            format!(
-                "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"ACOS\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
-                args[0].clone().unwrap()
-            )
-        );
-    } else if name.clone().unwrap().as_str() == "math.atan" {
-        return Ok(
-            format!(
-                "{{\"type\":\"math_trig\",\"fields\":{{\"OP\":\"ATAN\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
-                args[0].clone().unwrap()
-            )
-        );
+        _ => Ok(String::from(format!("{}", args.to_debug_string())))
     }
-
-    Ok(String::from(format!("{}", args.to_debug_string())))
 }
 
 fn parse_expr_compare(expr_compare: &ast::ExprCompare) -> Result<String, String> {
@@ -496,6 +568,13 @@ fn parse_expr_unary_op(expr_unary_op: &ast::ExprUnaryOp) -> Result<String, Strin
     if let ast::UnaryOp::Not = expr_unary_op.op {
         let input = format!("{{\"BOOL\":{{\"block\":{}}}}}", operand.unwrap());
         Ok(format!("{{\"type\":\"logic_negate\",\"inputs\": {}}}", input))
+    } else if let ast::UnaryOp::USub = expr_unary_op.op {
+        Ok(
+            format!(
+                "{{\"type\":\"math_single\",\"fields\":{{\"OP\":\"NEG\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}} }}}}",
+                operand.unwrap()
+            )
+        )
     } else {
         Err(expr_unary_op.to_debug_string())
     }
