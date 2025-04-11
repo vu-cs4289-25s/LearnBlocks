@@ -15,6 +15,22 @@ from .utils.s3 import get_path
 import uuid
 
 
+class Badge(models.Model):
+    badge_id = models.UUIDField(default=uuid.uuid4,
+                                editable=False, unique=True,
+                                primary_key=True)
+
+    name = models.CharField(max_length=50)
+    description = models.TextField()
+
+    image = models.ImageField(upload_to=get_path)
+
+    s3_key_id = 'badge_id'
+
+    class Meta:
+        db_table = 'badge'
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(unique=True, max_length=50)
     email = models.CharField(unique=True, max_length=255)
@@ -30,10 +46,10 @@ class User(AbstractBaseUser, PermissionsMixin):
                                                through='UserClassRoster',
                                                related_name='members',
                                                related_query_name='member')
-    badges = models.ManyToManyField(to='Badge',
-                                    through='UserBadgeAchievement',
-                                    related_name='users',
-                                    related_query_name='user')
+    badge_awards = models.ManyToManyField(to=Badge,
+                                          through='UserBadgeAchievement',
+                                          related_name='owners',
+                                          related_query_name='owner')
     course_enrollments = models.ManyToManyField(to='Course',
                                                 through='UserCourseEnrollment',
                                                 related_name='users',
@@ -48,16 +64,31 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = ['email', 'role']
 
+    # admin panel required fields
+    @property
+    def is_staff(self):
+        return self.role == enums.UserRole.ADMIN
+
+    @property
+    def is_superuser(self):
+        return self.role == enums.UserRole.ADMIN
+
+    def has_perm(self, perm, obj=None):
+        return self.is_superuser
+
+    def has_module_perms(self, app_label):
+        return self.is_superuser
+
     class Meta:
         db_table = 'user'
 
 
 class Class(models.Model):
-    class_id = models.UUIDField(default=uuid.uuid4,
-                                editable=False, unique=True)
+    class_id = models.UUIDField(default=uuid.uuid4, editable=False,
+                                unique=True, primary_key=True)
     class_name = models.CharField(max_length=255)
-    class_code = models.UUIDField(default=uuid.uuid4,
-                                  unique=True, editable=False)
+    join_code = models.UUIDField(default=uuid.uuid4, editable=False,
+                                 unique=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -73,24 +104,9 @@ class Class(models.Model):
         db_table = 'class'
 
 
-class Badge(models.Model):
-    badge_id = models.UUIDField(default=uuid.uuid4,
-                                editable=False, unique=True)
-
-    name = models.CharField(max_length=50)
-    description = models.TextField()
-
-    image = models.ImageField(upload_to=get_path)
-
-    s3_key_id = 'badge_id'
-
-    class Meta:
-        db_table = 'badge'
-
-
 class Course(models.Model):
-    course_id = models.UUIDField(default=uuid.uuid4,
-                                 editable=False, unique=True)
+    course_id = models.UUIDField(default=uuid.uuid4, editable=False,
+                                 unique=True, primary_key=True)
     course_name = models.CharField(max_length=255)
     status = models.TextField(choices=enums.CourseStatus,
                               default=enums.CourseStatus.ACTIVE)
@@ -102,7 +118,7 @@ class Course(models.Model):
                               related_name='owned_courses',
                               related_query_name='owned_course')
     visibility = models.TextField(choices=enums.CourseVisibility,
-                                  default=enums.CourseVisibility.PRIVATE)
+                                  default=enums.CourseVisibility.PUBLIC)
 
     modules = models.ManyToManyField(to='Module',
                                      through='CourseModuleMapping',
@@ -113,12 +129,12 @@ class Course(models.Model):
 
 
 class Module(models.Model):
-    module_id = models.UUIDField(default=uuid.uuid4,
-                                 editable=False, unique=True)
+    module_id = models.UUIDField(default=uuid.uuid4, editable=False,
+                                 unique=True, primary_key=True)
     module_name = models.CharField(max_length=255)
     visibility = models.TextField(choices=enums.ModuleVisibility,
-                                  default=enums.ModuleVisibility.PRIVATE)
-    owner = models.ForeignKey(to='User', to_field='username',
+                                  default=enums.ModuleVisibility.PUBLIC)
+    owner = models.ForeignKey(to=User, to_field='username',
                               on_delete=models.CASCADE, null=True,
                               related_name='owned_modules',
                               related_query_name='owned_module')
@@ -131,16 +147,16 @@ class Module(models.Model):
 
 
 class Project(models.Model):
-    project_id = models.UUIDField(default=uuid.uuid4,
-                                  editable=False, unique=True)
+    project_id = models.UUIDField(default=uuid.uuid4, editable=False,
+                                  unique=True, primary_key=True)
     project_name = models.CharField(max_length=100)
-    blob = models.FileField(upload_to=get_path)
+    file = models.FileField(upload_to=get_path)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
-    user = models.ForeignKey(to='User', to_field='username',
-                             on_delete=models.CASCADE,
-                             related_name='projects',
-                             related_query_name='project')
+    owner = models.ForeignKey(to=User, to_field='username',
+                              on_delete=models.CASCADE,
+                              related_name='projects',
+                              related_query_name='project')
     module = models.ForeignKey(to=Module, to_field='module_id',
                                on_delete=models.SET_NULL,
                                null=True,
@@ -153,14 +169,34 @@ class Project(models.Model):
         db_table = 'project'
 
 
-class ClassModuleAssignment(models.Model):
-    assignment_id = models.UUIDField(default=uuid.uuid4,
-                                     editable=False, unique=True)
+class ClassCourseMapping(models.Model):
+    assignment_id = models.UUIDField(default=uuid.uuid4, editable=False,
+                                     unique=True, primary_key=True)
+    course = models.ForeignKey(to=Course, to_field='course_id',
+                               on_delete=models.CASCADE)
     class_field = models.ForeignKey(to=Class, to_field='class_id',
                                     on_delete=models.CASCADE,
                                     db_column='class_id')
-    module = models.ForeignKey(to='Module', to_field='module_id',
+    assigned_date = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'class_course_mapping'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('course', 'class_field'),
+                name='unique_course_class')
+        ]
+
+
+class ClassModuleAssignment(models.Model):
+    assignment_id = models.UUIDField(default=uuid.uuid4, editable=False,
+                                     unique=True, primary_key=True)
+    module = models.ForeignKey(to=Module, to_field='module_id',
                                on_delete=models.CASCADE)
+    class_field = models.ForeignKey(to=Class, to_field='class_id',
+                                    on_delete=models.CASCADE,
+                                    db_column='class_id')
     assigned_date = models.DateTimeField(auto_now_add=True)
     due_date = models.DateField(blank=True, null=True)
 
@@ -173,28 +209,9 @@ class ClassModuleAssignment(models.Model):
         ]
 
 
-class ClassCourseMapping(models.Model):
-    assignment_id = models.UUIDField(default=uuid.uuid4,
-                                     editable=False, unique=True)
-    course = models.ForeignKey(to=Course, to_field='course_id',
-                               on_delete=models.CASCADE)
-    class_field = models.ForeignKey(to=Class, to_field='class_id',
-                                    on_delete=models.CASCADE,
-                                    db_column='class_id')
-    assigned_date = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'class_course_mapping'
-        constraints = [
-            models.UniqueConstraint(
-                fields=('course', 'class_field'),
-                name='unique_course_class')
-        ]
-
-
 class CourseModuleMapping(models.Model):
-    entry_id = models.UUIDField(default=uuid.uuid4,
-                                editable=False, unique=True)
+    entry_id = models.UUIDField(default=uuid.uuid4, editable=False,
+                                unique=True, primary_key=True)
     course = models.ForeignKey(to=Course, to_field='course_id',
                                on_delete=models.CASCADE)
     module = models.ForeignKey(to=Module, to_field='module_id',
@@ -216,8 +233,8 @@ class CourseModuleMapping(models.Model):
 
 
 class UserBadgeAchievement(models.Model):
-    achievement_id = models.UUIDField(default=uuid.uuid4,
-                                      editable=False, unique=True)
+    achievement_id = models.UUIDField(default=uuid.uuid4, editable=False,
+                                      unique=True, primary_key=True)
     badge = models.ForeignKey(to=Badge, to_field='badge_id',
                               on_delete=models.CASCADE)
     user = models.ForeignKey(to=User, to_field='username',
@@ -234,10 +251,8 @@ class UserBadgeAchievement(models.Model):
 
 
 class UserClassRoster(models.Model):
-    # The composite primary key (user_id, class_id) found,
-    # that is not supported. The first column is selected.
-    entry_id = models.UUIDField(default=uuid.uuid4,
-                                editable=False, unique=True)
+    entry_id = models.UUIDField(default=uuid.uuid4, editable=False,
+                                unique=True, primary_key=True)
     user = models.ForeignKey(to=User, to_field='username',
                              on_delete=models.CASCADE)
     class_field = models.ForeignKey(to=Class, to_field='class_id',
@@ -257,8 +272,8 @@ class UserClassRoster(models.Model):
 
 
 class UserCourseEnrollment(models.Model):
-    enrollment_id = models.UUIDField(default=uuid.uuid4,
-                                     editable=False, unique=True)
+    enrollment_id = models.UUIDField(default=uuid.uuid4, editable=False,
+                                     unique=True, primary_key=True)
     course = models.ForeignKey(to=Course, to_field='course_id',
                                on_delete=models.CASCADE)
     user = models.ForeignKey(to=User, to_field='username',
@@ -274,8 +289,8 @@ class UserCourseEnrollment(models.Model):
 
 
 class UserModuleProgress(models.Model):
-    progress_id = models.UUIDField(default=uuid.uuid4,
-                                   editable=False, unique=True)
+    progress_id = models.UUIDField(default=uuid.uuid4, editable=False,
+                                   unique=True, primary_key=True)
     user = models.ForeignKey(to=User, to_field='username',
                              on_delete=models.CASCADE)
     module = models.ForeignKey(to=Module, to_field='module_id',
