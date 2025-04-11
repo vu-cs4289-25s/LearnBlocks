@@ -14,4 +14,7 @@ export default defineConfig({
       $assets: path.resolve(import.meta.dirname, './src/assets'),
     },
   },
+  build: {
+    target: "ES2022"
+  }, 
 });

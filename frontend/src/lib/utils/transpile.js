@@ -13,14 +13,13 @@ function ptob(pythonSource) {
     const transpiledCode = ptob_wasm(pythonSource);
     try {
         const validJson = JSON.parse(transpiledCode);
-        console.log(validJson);
         if (validJson['error']) {
             return { 
                 'error': 'could not parse python code',
                 'details': transpiledCode,
             }
         }
-        return transpiledCode;
+        return validJson;
     } catch (SyntaxError) {
         return { 
             'error': 'invalid jason returned from the parser',
