@@ -9,6 +9,10 @@
   --font-sans: Rubik, sans-serif; /* swap default with imported font*/
 }
 
+.h-blockly {
+  height: 80vh;
+}
+
 /* WARN: This fixes react blocklys scrollbar problem*/
 .blocklyFlyoutScrollbar[display='none'] {
   display: none;
