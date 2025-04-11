@@ -347,12 +347,7 @@ fn parse_expr_call(expr_call: &ast::ExprCall) -> Result<String, String> {
 
     match name.clone().unwrap().as_str() {
         "print" => {
-            let text_block = if args.len() == 0 {
-                create_text_block(String::from("\' \'"))
-            } else {
-                create_text_block(args[0].clone().unwrap())
-            };
-            let input = format!("{{ \"TEXT\" : {{ \"block\" : {} }} }}", text_block);
+            let input = format!("{{ \"TEXT\" : {{ \"block\" : {} }} }}", args[0].clone().unwrap());
             Ok(format!("{{ \"type\": \"text_print\", \"inputs\": {} }}", input))
         },
         "range" => {
@@ -523,7 +518,7 @@ fn parse_expr_const(expr_const: &ast::ExprConstant) -> Result<String, String> {
     let value = &expr_const.value;
     match value {
         ast::Constant::Bool(c) => Ok(create_boolean_block(*c)),
-        ast::Constant::Str(c) => Ok(c.clone()),
+        ast::Constant::Str(c) => Ok(create_text_block(c.clone())),
         ast::Constant::Int(c) => Ok(create_int_block(c)),
         ast::Constant::None => Ok(String::from("{\"type\":\"logic_null\"}")),
         _ => Err(value.to_debug_string())
@@ -655,7 +650,7 @@ fn create_json_wrappers(blocks: String) -> String {
     let variables = VARIABLES_CONTAINER.lock().unwrap().clone();
     let var_names: Vec<String> = variables.clone().into_keys().collect();
     let var_ids: Vec<String> = variables.into_values().collect();
-    
+
     let mut var_str = String::from("[");
     for (name, id) in var_names.into_iter().zip(var_ids.into_iter()) {
         let s = format!("{{\"name\": \"{}\", \"id\": \"{}\"}},", name, id);
