@@ -1,39 +1,69 @@
-import { Button } from '@headlessui/react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import PageSelector from './PageSelector';
 
 /**
- *
- * @param {object} props - the props for this component
- * @param {string} props.className - passed directly to the first element of this component
- * @returns {import("react").ReactElement} a paged list of the public courses.
+ * @param {object} props
+ * @param {string} props.className
  */
 export default function CatalogWidget({ className }) {
   const data = [];
-  for (let i = 0; i < 10; i++) {
-    if (i % 6 === 0) data.push(new Array());
+  const itemsPerPage = 4;
+
+  for (let i = 0; i < 12; i++) {
+    if (i % itemsPerPage === 0) data.push([]);
     data.at(-1).push({
-      course_id: i,
-      name: 'Course ' + i,
-      description: 'Description ' + i,
+      name: `Course ${i + 1}`,
+      description: `This is a brief description for Course ${i + 1}.`,
     });
   }
 
   const [page, setPage] = useState(1);
 
   return (
-    <main className={className}>
-      <ul className="flex-1">
-        {data[page - 1].map((course, key) => (
-          <li className="m-2 h-1/7 rounded bg-zinc-900 p-2" key={key}>
-            <h1>{course.name}</h1>
-            <hr className="h-0.5 text-zinc-800" />
-            <p className="text-xs">{course.description}</p>
-          </li>
-        ))}
+    <section className={className}>
+      <h1 className="mb-4 text-3xl font-bold text-white">Course Catalog</h1>
+      <ul className="flex flex-col gap-4 overflow-auto rounded border-6 border-zinc-900 bg-zinc-900 p-4">
+        {data[page - 1].map((course, key) => {
+          const courseId = (page - 1) * itemsPerPage + key;
+          return (
+            <li
+              key={courseId}
+              className="flex flex-col gap-2 rounded bg-zinc-800 p-5 text-zinc-300 shadow hover:bg-zinc-700 transition"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-white">{course.name}</h2>
+                  <p className="text-sm text-zinc-400">{course.description}</p>
+                </div>
+                <Link
+                  to={`/catalog/${courseId}`}
+                  className="self-center rounded bg-amber-400 px-4 py-2 text-sm font-medium text-black hover:bg-amber-500"
+                >
+                  View Modules
+                </Link>
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
-      <PageSelector page={page} setPage={setPage} arr={data} />
-    </main>
+      <div className="mt-4 flex flex-col gap-3">
+        {/* Pagination aligned right */}
+        <div className="flex justify-end">
+          <PageSelector page={page} setPage={setPage} arr={data} />
+        </div>
+
+        {/* Centered Button */}
+        <div className="flex justify-center">
+          <Link
+            to="/"
+            className="transition-color rounded-full border border-amber-400 px-4 py-1 text-sm text-white shadow-sm duration-100 hover:bg-amber-400 hover:text-black hover:shadow-md active:bg-amber-500"
+          >
+            Back to Home
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
