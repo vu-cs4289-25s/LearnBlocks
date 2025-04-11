@@ -32,7 +32,8 @@ fn is_reserved_word(keyword: &str) -> Option<&str> {
 
 fn is_reserved_function(keyword: &str) -> Option<&str> {
     match keyword {
-        "print" | "range" | "math" | "round" | "input" => Some(keyword),
+        "print" | "range" | "math" | "round" | "input" |
+        "sum" | "min" | "max" | "random" => Some(keyword),
         _ => None
     }
 }
@@ -501,6 +502,38 @@ fn parse_expr_call(expr_call: &ast::ExprCall) -> Result<String, String> {
             Ok(
                 format!(
                     "{{\"type\":\"text_prompt_ext\",\"fields\":{{\"TYPE\":\"TEXT\"}},\"inputs\":{{\"TEXT\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        }
+        "sum" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_on_list\",\"fields\":{{\"OP\":\"SUM\"}},\"inputs\":{{\"LIST\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        }
+        "min" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_on_list\",\"fields\":{{\"OP\":\"MIN\"}},\"inputs\":{{\"LIST\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        }
+        "max" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_on_list\",\"fields\":{{\"OP\":\"MAX\"}},\"inputs\":{{\"LIST\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        }
+        "random.choice" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"math_on_list\",\"fields\":{{\"OP\":\"RANDOM\"}},\"inputs\":{{\"LIST\":{{\"block\":{}}}}}}}",
                     args[0].clone().unwrap()
                 )
             )
