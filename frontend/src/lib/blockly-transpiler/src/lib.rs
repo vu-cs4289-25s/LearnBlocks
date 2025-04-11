@@ -179,6 +179,24 @@ fn create_change_variable_block(target: String, value: String) -> String {
     )
 }
 
+fn create_list_block(elst: &Vec<String>) -> String {
+    let list_len = elst.len();
+    let extra_state = format!("{{\"itemCount\":{}}}", list_len);
+
+    let mut inputs = String::from("");
+    for i in 0..list_len {
+        let s = format!("\"ADD{}\":{{\"block\":{}}},", i, elst[i]);
+        inputs.push_str(s.as_str());
+    }
+    inputs.pop();
+
+    format!(
+        "{{\"type\":\"lists_create_with\",\"inputs\":{{{}}},\"extraState\":{}}}",
+        inputs,
+        extra_state
+    )
+}
+
 fn parse_assign(assign_stmt: &ast::StmtAssign) -> Result<String, String> {
     if assign_stmt.targets.len() != 1 {
         return Err(String::from("invalid number of arguments to assignstatement"));
@@ -540,6 +558,15 @@ fn parse_expr_if_exp(expr_if_exp: &ast::ExprIfExp) -> Result<String, String> {
     Ok(create_if_exp_block(test.unwrap(), body.unwrap(), orelse.unwrap()))
 }
 
+fn parse_expr_list(expr_list: &ast::ExprList) -> Result<String, String> {
+    let elts = expr_list.elts.clone()
+                             .into_iter()
+                             .map(|e| parse_expr(&e))
+                             .filter_map(Result::ok)
+                             .collect();
+    Ok(create_list_block(&elts))
+}
+
 fn parse_expr_name(expr_name: &ast::ExprName) -> Result<String, String> {
     let identifier = expr_name.id.as_str();
     if is_reserved_word(identifier).is_none() && is_reserved_function(identifier).is_none() {
@@ -589,6 +616,7 @@ fn parse_expr(expr: &ast::Expr) -> Result<String, String> {
         ast::Expr::Compare(expr_compare) => parse_expr_compare(&expr_compare),
         ast::Expr::Constant(expr_const) => parse_expr_const(&expr_const),
         ast::Expr::IfExp(expr_if_exp) => parse_expr_if_exp(&expr_if_exp),
+        ast::Expr::List(expr_list) => parse_expr_list(&expr_list),
         ast::Expr::Name(expr_name) => parse_expr_name(&expr_name),
         ast::Expr::UnaryOp(expr_unary_op) => parse_expr_unary_op(&expr_unary_op),
         _ => Err(expr.to_debug_string())
