@@ -3,12 +3,12 @@ import ReactDOM from 'react-dom';
 import { Button } from "@headlessui/react";
 import { BlocklyWorkspace } from 'react-blockly';
 import * as Blockly from 'blockly/core';
+import { javascriptGenerator } from 'blockly/javascript';
 import { btop, ptob } from '$lib/utils/transpile.js';
 import { TOOLBOX } from '$lib/utils/blocklyToolbox.js';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
-// TODO - create theme
 const WORKSPACE_CONFIG = {
     theme: {
         'componentStyles' : {
@@ -68,19 +68,19 @@ const WORKSPACE_CONFIG = {
     }
 };
 
-const BlocklyComponent = ({ globalState, setLocalState }) => {
+const BlocklyComponent = ({ globalState, setGlobalState }) => {
     return (
         <BlocklyWorkspace 
           className='w-full h-full border-2 border-gray-700'
           toolboxConfiguration={TOOLBOX}
           workspaceConfiguration={WORKSPACE_CONFIG}
-          initialJson={ptob(globalState)}
-          onWorkspaceChange={setLocalState}
+          initialJson={globalState}
+          onWorkspaceChange={setGlobalState}
         />
     );
 };
 
-const PythonEditor = ({ globalState, setLocalState }) => {
+const PythonEditor = ({ pythonLocalState, setLocalState }) => {
     const [state, setState] = useState('');
     
     const saveState = event => {
@@ -89,7 +89,7 @@ const PythonEditor = ({ globalState, setLocalState }) => {
     }
 
     useEffect(() => {
-        setState(globalState);
+        setState(pythonLocalState);
     }, []);  
 
     return (
@@ -103,9 +103,9 @@ const PythonEditor = ({ globalState, setLocalState }) => {
 
 export default function CodeEditor() {
     const [editorMode, setEditorMode] = useState('blockly');
-    const [globalState, setGlobalState] = useState('');
+    const [globalState, setGlobalState] = useState({});
     const [pythonLocalState, setPythonLocalState] = useState('');
-    const [consoleState, setConsoleState] = useState('$');
+    const [workspace, setWorkspace] = useState(undefined);
 
     const changeLanguage = () => {
         if (editorMode === 'blockly') {
@@ -113,46 +113,52 @@ export default function CodeEditor() {
         } else {
             setEditorMode('blockly');
         }
-        resetConsole();
     }
 
-    const updateBlocklyState = workspace => {
-        console.log(Blockly.serialization.workspaces.save(workspace));
-        const transpiledCode = btop(workspace);
-        setGlobalState(transpiledCode);
+    const updateBlocklyState = _workspace => {
+        setWorkspace(_workspace);
+        if (workspace) {
+            const serialized_state = Blockly.serialization.workspaces.save(workspace);
+            if (JSON.stringify(serialized_state) !== JSON.stringify(globalState)) {
+                setGlobalState(serialized_state);
+                setPythonLocalState(btop(workspace));
+            }
+        }
     }
 
     const updatePythonState = pythonSource => {
         const parsedSource = ptob(pythonSource);
-       
         if (!parsedSource['error'])
-            setGlobalState(pythonSource);
+            setGlobalState(parsedSource);
         else
             console.log(parsedSource);
     }
 
     const runCode = () => {
-        setConsoleState('running...');
-        // TODO
-    }
-
-    const resetConsole = () => {
-        setConsoleState('$');
+        javascriptGenerator.addReservedWords('code');
+        var code = javascriptGenerator.workspaceToCode(workspace);
+        try {
+            eval(code);
+        } catch (e) {
+            alert(e);
+        }
     }
 
     const saveCode = () => {
-        resetConsole()
         console.log(globalState)
         //TODO
     }
 
     return (
-        <div className='w-full h-full inline-flex'>
-          <div className='w-3/5 h-full'>
+        <div className='w-3/4 h-full inline-flex'>
+          <div className='w-full h-full'>
               {
                 editorMode === 'blockly' ?
-                <BlocklyComponent globalState={globalState} setLocalState={updateBlocklyState} /> :
-                <PythonEditor globalState={globalState} setLocalState={updatePythonState} />
+                <BlocklyComponent globalState={globalState} setGlobalState={updateBlocklyState} /> :
+                <PythonEditor 
+                  pythonLocalState={pythonLocalState}
+                  setLocalState={updatePythonState} 
+                />
               }
             <div className='flex space-x-3 py-2 px-1'>
               <Button
@@ -174,9 +180,6 @@ export default function CodeEditor() {
                  Save
                </Button>
             </div>
-          </div>
-          <div className="w-1/5 h-full">
-              {consoleState}
           </div>
         </div>
     );
