@@ -655,6 +655,7 @@ fn create_json_wrappers(blocks: String) -> String {
     let variables = VARIABLES_CONTAINER.lock().unwrap().clone();
     let var_names: Vec<String> = variables.clone().into_keys().collect();
     let var_ids: Vec<String> = variables.into_values().collect();
+    
     let mut var_str = String::from("[");
     for (name, id) in var_names.into_iter().zip(var_ids.into_iter()) {
         let s = format!("{{\"name\": \"{}\", \"id\": \"{}\"}},", name, id);
@@ -662,7 +663,12 @@ fn create_json_wrappers(blocks: String) -> String {
     }
     var_str.pop();
     var_str.push(']');
-    format!("{{\"blocks\":{}, \"variables\": {} }}", interior_blocks, var_str)
+
+    if var_str.len() == 1 {
+        format!("{{\"blocks\":{}}}", interior_blocks)
+    } else {
+        format!("{{\"blocks\":{}, \"variables\": {} }}", interior_blocks, var_str)
+    }
 }
 
 fn reset_vars() {
