@@ -90,19 +90,10 @@ export const tryGetModules = async () => {
   }
 }
 
-export const tryJoinClass = async (authUser, classCode) =>{
-  const classId= classCode; //Change it to tryGetClassCode(classId) later
-  const req={
-    user:authUser.username,
-    class_field:classId,
-    role:authUser.role,
-  }
+export const tryJoinClass = async (classCode) =>{
+  console.log(classCode);
   try{
-    const res = await fetch(`${import.meta.env.VITE_CLOUD}/user-class-rosters/`,{
-      method: "POST",
-      body: JSON.stringify(req),
-      headers: { "content-type": "application/json" },
-    });
+    const res = await fetch(`${import.meta.env.VITE_CLOUD}/classes/join/${classCode}`);
     const json = await res.json()
     return json;
   }

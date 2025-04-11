@@ -146,56 +146,10 @@ urlpatterns = [
     path('users/<str:username>/',
          views.UserDetailView.as_view(),
          name='user-detail'),
-<<<<<<< HEAD
-    path('users/<uuid:user_id>/projects',
-         views.UserProjectsListView.as_view(),
-         name='user_projects_list'),
-    path('users/<uuid:user_id>/badges',
-         views.UserBadgesListView.as_view(),
-         name='user_badges_list'),
-    path('users/<uuid:user_id>/courses',
-         views.UserCoursesListView.as_view(),
-         name='user_courses_list'),
-    path('users/<uuid:user_id>/modules',
-         views.UserModulesListView.as_view(),
-         name='user_modules_list'),
-
-    # UserBadgeAchievement endpoints:
-    path('user-badge-achievements/',
-         views.UserBadgeAchievementListCreateView.as_view(),
-         name='userbadgeachievement-list'),
-    path('user-badge-achievements/<uuid:achievement_id>/',
-         views.UserBadgeAchievementRetrieveUpdateDestroyView.as_view(),
-         name='userbadgeachievement-detail'),
-
-    # UserClassRoster endpoints:
-    path('user-class-rosters/', views.UserClassRosterListCreateView.as_view(),
-         name='userclassroster-list'),
-    path('user-class-rosters/<str:username>/',
-         views.UserClassRosterRetrieveUpdateDestroyView.as_view(),
-         name='userclassroster-detail'),
-
-    # UserCourseEnrollment endpoints:
-    path('user-course-enrollments/',
-         views.UserCourseEnrollmentListCreateView.as_view(),
-         name='usercourseenrollment-list'),
-    path('user-course-enrollments/<str:username>/',
-         views.UserCourseEnrollmentRetrieveUpdateDestroyView.as_view(),
-         name='usercourseenrollment-detail'),
-
-    # UserModuleProgress endpoints:
-    path('user-module-progresses/',
-         views.UserModuleProgressListCreateView.as_view(),
-         name='usermoduleprogress-list'),
-    path('user-module-progresses/<uuid:progress_id>/',
-         views.UserModuleProgressRetrieveUpdateDestroyView.as_view(),
-         name='usermoduleprogress-detail'),
-=======
     path('users/<str:username>/badges/',
          views.UserBadgeListView.as_view(),
          name='user-badge-list'),
     path('users/<str:username>/badges/<uuid:achievement_id>/',
          views.UserBadgeDetailView.as_view(),
          name='user-badge-detail'),
->>>>>>> main
 ]

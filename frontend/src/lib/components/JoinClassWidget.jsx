@@ -11,7 +11,7 @@ export default function JoinClassWidget({ className }) {
     e.preventDefault();
     const rawFormData = new FormData(formRef.current);
     const data = Object.fromEntries(rawFormData.entries());
-    const res= await tryJoinClass(authUser,data.classcode);
+    const res= await tryJoinClass(data.classcode);
     if (res instanceof Error) return setError(res.message);
   }
   return (
