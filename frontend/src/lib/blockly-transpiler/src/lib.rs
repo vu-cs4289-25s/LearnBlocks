@@ -32,7 +32,7 @@ fn is_reserved_word(keyword: &str) -> Option<&str> {
 
 fn is_reserved_function(keyword: &str) -> Option<&str> {
     match keyword {
-        "print" | "range" | "math" | "round" => Some(keyword),
+        "print" | "range" | "math" | "round" | "input" => Some(keyword),
         _ => None
     }
 }
@@ -493,6 +493,14 @@ fn parse_expr_call(expr_call: &ast::ExprCall) -> Result<String, String> {
             Ok(
                 format!(
                     "{{\"type\":\"math_round\",\"fields\":{{\"OP\":\"ROUNDDOWN\"}},\"inputs\":{{\"NUM\":{{\"block\":{}}}}}}}",
+                    args[0].clone().unwrap()
+                )
+            )
+        }
+        "input" => {
+            Ok(
+                format!(
+                    "{{\"type\":\"text_prompt_ext\",\"fields\":{{\"TYPE\":\"TEXT\"}},\"inputs\":{{\"TEXT\":{{\"block\":{}}}}}}}",
                     args[0].clone().unwrap()
                 )
             )
