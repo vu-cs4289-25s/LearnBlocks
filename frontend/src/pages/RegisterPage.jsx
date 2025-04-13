@@ -10,7 +10,7 @@ export default function RegistrationPage() {
           alt="Learn Blocks Logo"
         />
         <h1 className="text-center text-4xl font-bold dark:text-zinc-100">
-          LearnBlocks
+          LearnBlox
         </h1>
       </figure>
         <RegisterForm />

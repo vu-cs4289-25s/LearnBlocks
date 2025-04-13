@@ -57,7 +57,7 @@ export default function Navbar({ navLinkData }) {
           className="mr-3 h-9"
           alt="Learn Blocks Logo"
         />
-        LearnBlocks
+        LearnBlox
       </Link>
       <div className="flex flex-1/2 flex-row justify-end md:hidden">
         <Button onClick={() => setClosed(false)}>

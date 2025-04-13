@@ -5,7 +5,7 @@ export default function EditProfilePage() {
     <main className="flex flex-1 flex-row items-center justify-evenly ">
       <figure className="flex flex-col gap-10 max-md:hidden">
         <img
-          src="learnblocks.svg"
+          src="/learnblocks.svg"
           className="h-60 "
           alt="Learn Blocks Logo"
         />
