@@ -11,6 +11,7 @@ import TermsPage from "$pages/TermsPage";
 import JoinClassPage from "$pages/JoinClassPage";
 import CourseCatalogPage from "$pages/CourseCatalogPage";
 import CourseModulesPage from "$pages/CourseModulesPage";
+import ModulePage from "$pages/ModulePage";
 import StudentCoursesPage from "$pages/StudentCoursesPage";
 import EditProfilePage from "$pages/EditProfilePage";
 import TeacherHomePage from "$pages/TeacherHomePage";
@@ -38,6 +39,7 @@ ReactDOM.createRoot(root).render(
           <Route path="catalog">
             <Route index element={<CourseCatalogPage />} />
             <Route path=":courseid" element={<CourseModulesPage />} />
+            <Route path=":courseid/module/:moduleid" element={<ModulePage />} />
           </Route>
           <Route path="playground" element={<Playground />} />
           <Route path="s/">

@@ -1,14 +1,11 @@
 import { Link, useParams } from "react-router-dom";
+import courses from "$lib/courses";
 
 export default function CourseModulesWidget({ className }) {
   const { courseid } = useParams();
+  const course = courses.find((c) => c.id === courseid);
 
-  const modules = [
-    { id: 0, title: "Module 1", description: "Introduction to the course", status: "Completed" },
-    { id: 1, title: "Module 2", description: "Core concepts and lessons", status: "In Progress" },
-    { id: 2, title: "Module 3", description: "Advanced topics and projects", status: "Not Started" },
-    { id: 3, title: "Module 4", description: "Final review and assessment", status: "Not Started" },
-  ];
+  const modules = course?.modules ?? [];
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -24,7 +21,10 @@ export default function CourseModulesWidget({ className }) {
 
   return (
     <section className={className}>
-      <h1 className="text-2xl font-bold text-white mb-4">Modules for Course {courseid}</h1>
+      <h1 className="text-2xl font-bold text-white mb-4">
+        {course ? `${course.name} Modules` : `Course ${courseid} Modules`}
+      </h1>
+
       <ul className="flex flex-col gap-2">
         {modules.map((mod) => (
           <li
