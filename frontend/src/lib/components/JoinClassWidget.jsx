@@ -6,12 +6,13 @@ import { tryJoinClass} from "$lib/utils/actions.mjs";
 export default function JoinClassWidget({ className }) {
   const formRef=useRef(null);
   const {authUser}=useContext(AuthUserContext);
+  //console.log("authuser",authUser);
   const {setError}=useContext(ErrorContext);
   const onJoin= async(e)=>{
     e.preventDefault();
     const rawFormData = new FormData(formRef.current);
     const data = Object.fromEntries(rawFormData.entries());
-    const res= await tryJoinClass(data.classcode);
+    const res= await tryJoinClass(data.classcode,authUser);
     if (res instanceof Error) return setError(res.message);
   }
   return (
