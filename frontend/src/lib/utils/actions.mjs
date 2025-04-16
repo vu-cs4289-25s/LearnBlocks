@@ -89,3 +89,49 @@ export const tryGetModules = async () => {
     return new Error(`Failed to get Modules List: ${err}`)    
   }
 }
+
+export const tryJoinClass = async (classCode,authUser) =>{
+  //console.log(classCode);
+  //console.log(authUser);
+  try{
+    const res = await fetchLB(authUser,`${import.meta.env.VITE_CLOUD}/classes/join/${classCode}/`,{method:"POST"});
+    const json = await res.json()
+    return json;
+  }
+  catch(err){
+    return new Error(`Failed to Join Class: ${err}`);
+  }
+}
+
+export const fetchLB = async (authUser, input, init = {}) => {
+  // Create a new Headers object with the headers passed in init (if any)
+  const headers = new Headers(init.headers || {});
+
+  //console.log(authUser);
+
+  // If authUser exists and has a token, append it to the Authorization header.
+  if (authUser && authUser.token) {
+    headers.set('Authorization', `Token ${authUser.token}`);
+  }
+
+  // Merge the headers back into the fetch options.
+  const updatedInit = {
+    ...init,
+    headers,
+  };
+
+  try {
+    const response = await fetch(input, updatedInit);
+
+    // If the response is not OK, extract the error message and throw an error.
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      throw new Error(`Fetch error: ${response.status} - ${errorMessage}`);
+    }
+
+    return response;
+  } catch (error) {
+    // Propagate the error to the caller for further handling.
+    throw error;
+  }
+};

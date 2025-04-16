@@ -13,13 +13,19 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 
 import environ
-# Initialise environment variables
-env = environ.Env()
-environ.Env.read_env()
-
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+print("BASE_DIR =", BASE_DIR)
+env_path = BASE_DIR / '.env'
+print("DEBUG: .env file exists:", env_path.exists())
+
+# Initialise environment variables
+env = environ.Env()
+environ.Env.read_env(env_path)
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -30,6 +36,15 @@ SECRET_KEY = 'django-insecure-!6ahu5akkscghbb-!ef5m)r755-le#0(lbi0s(l9e)c49i$&s6
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+# Debug: Print the database-related environment variables
+if(DEBUG):
+    print("DEBUG: Loaded environment variables from .env file:")
+    print("DATABASE_NAME =", os.environ.get("DATABASE_NAME"))
+    print("DATABASE_USER =", os.environ.get("DATABASE_USER"))
+    print("DATABASE_PASSWORD =", os.environ.get("DATABASE_PASSWORD"))
+    print("DATABASE_HOST =", os.environ.get("DATABASE_HOST"))
+    print("DATABASE_PORT =", os.environ.get("DATABASE_PORT"))
 
 ALLOWED_HOSTS = []
 

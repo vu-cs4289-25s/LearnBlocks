@@ -34,15 +34,15 @@ export function LoginForm() {
   return (
     <form
       ref={formRef}
-      className="flex flex-col items-center gap-4 rounded-2xl bg-zinc-800 p-4"
+      className="flex flex-col items-center gap-4 rounded-2xl bg-zinc-800 p-9"
     >
       <img src="learnblocks.svg" alt="Learn Blocks Logo" />
       <h1 className="text-center text-2xl font-bold">Login</h1>
-      <Field className="flex flex-col">
+      <Field className="flex flex-col w-80">
         <Label> username: </Label>
         <Input name="username" className="rounded bg-zinc-900 p-1" required />
       </Field>
-      <Field className="flex flex-col">
+      <Field className="flex flex-col w-80">
         <Label> password: </Label>
         <Input name="password" type="password" className="rounded bg-zinc-900 p-1" required />
       </Field>
