@@ -15,9 +15,11 @@
   "dependencies": {
     "blockly": "^11.2.1",
     "learnblocks": "file:",
+    "highlight.js": "^11.11.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.1.5"
+    "react-router-dom": "^7.1.5",
+    "react-syntax-highlighter": "^15.6.1"
   },
   "devDependencies": {
     "@headlessui/react": "^2.2.0",

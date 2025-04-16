@@ -1,4 +1,4 @@
-import StudentCoursesWidget from '$lib/StudentCoursesWidget';
+import StudentCoursesWidget from "$lib/StudentCoursesWidget";
 
 export default function StudentCoursesPage() {
   return (
