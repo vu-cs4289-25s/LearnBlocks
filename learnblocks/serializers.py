@@ -5,6 +5,7 @@ from .models import (Badge, Class, ClassModuleAssignment, Course,
                      Project, User, UserBadgeAchievement, UserClassRoster,
                      UserCourseEnrollment, UserModuleProgress)
 from .enums import UserRole
+from .utils.serializers import is_included
 
 from .utils.serializers import (BadgeEarnersUtilSerializer,
                                 UserClassEnrollmentsUtilSerializer,
@@ -38,6 +39,8 @@ class ClassSerializer(serializers.ModelSerializer):
     modules = serializers.SerializerMethodField()
 
     def get_members(self, obj: Class):
+        if is_included(serializer=self):
+            return
         roster_entries = UserClassRoster.objects.filter(class_field=obj)
         return ClassMembersUtilSerializer(roster_entries, many=True).data
 
@@ -151,8 +154,7 @@ class UserSerializer(serializers.ModelSerializer):
                                      for i in includes_param.split(','))
 
     def get_projects(self, user):
-        include = 'projects' in getattr(self, '_includes', {})
-        if not include:
+        if not is_included(serializer=self, field='projects'):
             return None
         projects = Project.objects.filter(owner=user)
         return UserProjectsUtilSerializer(projects, many=True).data

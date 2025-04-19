@@ -5,6 +5,11 @@ from ..models import (UserClassRoster, ClassCourseMapping,
                       UserModuleProgress)
 
 
+def is_included(serializer, field):
+    include = field in getattr(serializer, '_includes', {})
+    return include
+
+
 class UserBadgesUtilSerializer(serializers.ModelSerializer):
     image = serializers.UUIDField(source='badge.image')
     badge_id = serializers.UUIDField(source='badge.badge_id')
