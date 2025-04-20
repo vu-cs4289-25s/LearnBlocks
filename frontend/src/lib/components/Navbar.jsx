@@ -40,12 +40,12 @@ export default function Navbar({ navLinkData }) {
   const links = getLinks(authUser);
 
   const handleLogout = async (e) => {
-    setAuthUser(null);
-    const res = await tryLogout();
+    const res = await tryLogout(authUser);
     setClosed(true);
     if (res instanceof Error) {
       return setError(res.message);
     }
+    setAuthUser(null);
     navigate("/");
   };
 

@@ -32,6 +32,13 @@ class WhoAmIView(views.APIView):
         serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
+class LogoutView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        # delete the token to force a logout
+        request.user.auth_token.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 # --- Badges ---
 class BadgeListCreateView(generics.ListCreateAPIView):

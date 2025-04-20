@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "blockly": "^11.2.1",
-    "learnblocks": "file:",
     "highlight.js": "^11.11.1",
+    "learnblocks": "file:",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.1.5",

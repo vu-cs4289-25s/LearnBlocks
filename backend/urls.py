@@ -26,7 +26,7 @@ urlpatterns = [
     # Auth endpoints:
     path('login/', obtain_auth_token),
     path('whoami/', views.WhoAmIView.as_view(), name='who-am-i'),
-
+    path('logout/', views.LogoutView.as_view(), name='api-logout'),
     # Badge endpoints:
     path('badges/',
          views.BadgeListCreateView.as_view(),

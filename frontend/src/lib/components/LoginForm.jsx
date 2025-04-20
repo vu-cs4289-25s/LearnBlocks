@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@headlessui/react";
 import { useContext, useRef } from "react";
 import { AuthUserContext, ErrorContext } from "$lib/contexts/ErrorContext";
-import { tryLogin } from "$lib/utils/actions.mjs";
+import { fetchUser, tryLogin } from "$lib/utils/actions.mjs";
 
 /**
  * generates the form portion of the login card
@@ -27,8 +27,11 @@ export function LoginForm() {
     const data = Object.fromEntries(rawFormData.entries());
     const res = await tryLogin(data);
     if (res instanceof Error) return setError(res.message);
-    setAuthUser(res)
-    navigate(`/${res.role[0]}/home`);
+    //console.log(data);
+    const user = await fetchUser(res,data.username);
+    console.log(user);
+    setAuthUser({...res,...user});
+    navigate(`/${user.role[0]}/home`);
   };
 
   return (

@@ -46,10 +46,10 @@ export const tryLogin = async (data) => {
   }
 };
 
-export const tryLogout = async () => {
+export const tryLogout = async (authUser) => {
   try {
-   const res = await fetch(`${import.meta.env.VITE_CLOUD}/api/session/reset/`, {
-      method: "DELETE",
+   const res = await fetchLB(authUser,`${import.meta.env.VITE_CLOUD}/logout/`, {
+      method: "POST",
     });
     if (!res.ok) throw new Error(`${res.status}: Failed To Logout`);
   } catch (err) {
@@ -135,3 +135,14 @@ export const fetchLB = async (authUser, input, init = {}) => {
     throw error;
   }
 };
+
+export const fetchUser = async(authUser,username)=>{
+  try {
+    const res = await fetchLB(authUser,`${import.meta.env.VITE_CLOUD}/users/${username}`) 
+    const json = await res.json()
+    return json
+   }
+   catch(err) {
+     return new Error(`Failed to get User: ${err}`)    
+   }  
+}
