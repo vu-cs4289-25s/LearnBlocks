@@ -74,7 +74,7 @@ export default function CatalogWidget({ className }) {
 
         <div className="flex justify-center">
           <Link
-            to="/"
+            to={authUser? `/${authUser.role[0]}/home`: '/'}
             className="transition-color rounded-full border border-amber-400 px-4 py-1 text-sm text-white shadow-sm duration-100 hover:bg-amber-400 hover:text-black hover:shadow-md active:bg-amber-500"
           >
             Back to Home
