@@ -1,7 +1,6 @@
 import { React, Suspense, lazy, useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Markdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { tryGetModule } from '$lib/utils/actions.mjs';
 import { AuthUserContext, ErrorContext } from '$lib/contexts/Context';
 
@@ -13,10 +12,11 @@ export default function Playground() {
   const { setError } = useContext(ErrorContext);
   const { authUser } = useContext(AuthUserContext)
   useEffect(() => {
+    if (module_id){
     tryGetModule(authUser, module_id).then((res) => {
       if (res instanceof Error) return setError(res.message)
       else setModule(res)
-    })
+    })}
 
   }, [setError, setModule, module_id, authUser]);
   return (
@@ -38,7 +38,7 @@ export default function Playground() {
           <aside
             className={`m-2 h-full flex-1 rounded bg-zinc-900 p-2 ${!module_id ? 'hidden' : ''}`}
           >
-            <Markdown remarkPlugins={[remarkGfm]}>
+            <Markdown>
               {module ? module.blob : ''}
             </Markdown>
           </aside>

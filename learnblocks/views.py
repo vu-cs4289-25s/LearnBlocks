@@ -26,6 +26,7 @@ from django.shortcuts import get_object_or_404
 # --- Authentication ---
 class WhoAmIView(views.APIView):
     authentication_classes = [authentication.TokenAuthentication]
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
@@ -33,6 +34,7 @@ class WhoAmIView(views.APIView):
         return Response(serializer.data)
 
 class LogoutView(views.APIView):
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
@@ -44,6 +46,7 @@ class LogoutView(views.APIView):
 class BadgeListCreateView(generics.ListCreateAPIView):
     queryset = Badge.objects.all()
     serializer_class = BadgeSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                               | permissions.IsReadOnly)]
@@ -53,12 +56,14 @@ class BadgeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Badge.objects.all()
     serializer_class = BadgeSerializer
     lookup_field = 'badge_id'
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsReadOnly | permissions.IsAdmin]
 
 
 # --- Classes ---
 class ClassListCreateView(generics.ListCreateAPIView):
     serializer_class = ClassSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsTeacher
@@ -80,6 +85,7 @@ class ClassListCreateView(generics.ListCreateAPIView):
 
 class ClassDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ClassSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsClassOwner
@@ -95,6 +101,7 @@ class ClassDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ClassJoinView(views.APIView):
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, join_code):
@@ -108,6 +115,7 @@ class ClassJoinView(views.APIView):
 
 # --- ClassCourseMapping---
 class ClassCourseListCreateView(generics.ListCreateAPIView):
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsClassOwner
@@ -127,6 +135,7 @@ class ClassCourseListCreateView(generics.ListCreateAPIView):
 
 class ClassCourseDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ClassCourseMappingSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsClassOwner
@@ -142,6 +151,7 @@ class ClassCourseDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ClassCourseModuleListView(generics.ListAPIView):
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsClassOwner
@@ -161,6 +171,7 @@ class ClassCourseModuleListView(generics.ListAPIView):
 
 class ClassCourseModuleDetailView(generics.RetrieveAPIView):
     serializer_class = CourseModuleMappingSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsClassOwner
@@ -182,6 +193,7 @@ class ClassCourseModuleDetailView(generics.RetrieveAPIView):
 
 
 class ClassCourseModuleSubmissionListView(generics.ListAPIView):
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsClassOwner
@@ -216,6 +228,7 @@ class ClassCourseModuleSubmissionListView(generics.ListAPIView):
 
 class ClassCourseModuleSubmissionDetailView(generics.RetrieveAPIView):
     serializer_class = ProjectSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsClassOwner
@@ -256,6 +269,7 @@ class ClassCourseModuleSubmissionDetailView(generics.RetrieveAPIView):
 # --- ClassModuleAssignment ---
 class ClassModuleListCreateView(generics.ListCreateAPIView):
     serializer_class = ClassModuleAssignmentSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsClassOwner
@@ -273,6 +287,7 @@ class ClassModuleListCreateView(generics.ListCreateAPIView):
 
 
 class ClassModuleDetailView(generics.RetrieveUpdateDestroyAPIView):
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsClassOwner
@@ -290,6 +305,7 @@ class ClassModuleDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ClassModuleSubmissionListView(generics.ListAPIView):
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsClassOwner
@@ -319,6 +335,7 @@ class ClassModuleSubmissionListView(generics.ListAPIView):
 
 class ClassModuleSubmissionDetailView(generics.RetrieveAPIView):
     serializer_class = ProjectSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsClassOwner
@@ -355,6 +372,7 @@ class ClassModuleSubmissionDetailView(generics.RetrieveAPIView):
 
 class ClassMemberListView(generics.ListAPIView):
     serializer_class = UserClassRosterSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsClassOwner
@@ -367,6 +385,7 @@ class ClassMemberListView(generics.ListAPIView):
 
 class ClassMemberDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserClassRosterSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsClassOwner
@@ -385,6 +404,7 @@ class ClassMemberDetailView(generics.RetrieveUpdateDestroyAPIView):
 # --- Course ---
 class CourseListCreateView(generics.ListCreateAPIView):
     serializer_class = CourseSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsReadOnly)]
@@ -403,6 +423,7 @@ class CourseListCreateView(generics.ListCreateAPIView):
 
 class CourseDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CourseSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                               | permissions.IsReadOnly)]
@@ -419,6 +440,7 @@ class CourseDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class CourseEnrollView(generics.CreateAPIView):
     serializer_class = UserCourseEnrollment
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
@@ -431,6 +453,7 @@ class CourseEnrollView(generics.CreateAPIView):
 # --- CourseModuleMapping ---
 class CourseModuleListCreateView(generics.ListCreateAPIView):
     serializer_class = CourseModuleMappingSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsCourseOwner
@@ -448,6 +471,7 @@ class CourseModuleListCreateView(generics.ListCreateAPIView):
 
 class CourseModuleDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CourseModuleMappingSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsCourseOwner
@@ -464,6 +488,7 @@ class CourseModuleDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class CourseModuleSubmissionListView(generics.ListAPIView):
     serializer_class = ProjectSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
@@ -483,6 +508,7 @@ class CourseModuleSubmissionListView(generics.ListAPIView):
 
 class CourseModuleSubmissionDetailView(generics.RetrieveAPIView):
     serializer_class = ProjectSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
@@ -507,6 +533,7 @@ class CourseModuleSubmissionDetailView(generics.RetrieveAPIView):
 # --- Module ---
 class ModuleListCreateView(generics.ListCreateAPIView):
     serializer_class = ModuleSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsReadOnly)]
@@ -525,6 +552,7 @@ class ModuleListCreateView(generics.ListCreateAPIView):
 
 class ModuleDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ModuleSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsReadOnly)]
@@ -541,6 +569,7 @@ class ModuleDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class UserModuleListCreateView(generics.ListCreateAPIView):
     serializer_class = UserModuleProgress
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'module_id'
 
@@ -551,6 +580,7 @@ class UserModuleListCreateView(generics.ListCreateAPIView):
 
 
 class ModuleSubmissionListCreateView(generics.ListCreateAPIView):
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ProjectSerializer
 
@@ -572,6 +602,7 @@ class ModuleSubmissionListCreateView(generics.ListCreateAPIView):
 
 class ModuleSubmissionDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProjectSerializer
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
@@ -594,6 +625,7 @@ class ModuleSubmissionDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # --- Project ---
 class ProjectListCreateView(generics.ListCreateAPIView):
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = ProjectSerializer
 
@@ -610,6 +642,7 @@ class ProjectListCreateView(generics.ListCreateAPIView):
 
 
 class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsProjectOwner)]
@@ -622,11 +655,13 @@ class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
 class UserListCreateView(generics.ListCreateAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [~permissions.IsReadOnly
                           | permissions.IsAuthenticated]
 
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated
                           & (permissions.IsAdmin
                              | permissions.IsSelf)]
@@ -637,12 +672,14 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 # --- UserBadgeAchievement ---
 class UserBadgeListView(generics.ListAPIView):
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     queryset = UserBadgeAchievement.objects.all()
     serializer_class = UserBadgeAchievementSerializer
 
 
 class UserBadgeDetailView(generics.RetrieveAPIView):
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     queryset = UserBadgeAchievement.objects.all()
     serializer_class = UserBadgeAchievementSerializer

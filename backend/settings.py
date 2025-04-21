@@ -29,7 +29,7 @@ environ.Env.read_env(env_path)
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!6ahu5akkscghbb-!ef5m)r755-le#0(lbi0s(l9e)c49i$&s6'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -45,7 +45,7 @@ if (DEBUG and os.environ.get('RUN_MAIN') != 'true'):
     print("DATABASE_HOST =", env("DATABASE_HOST"))
     print("DATABASE_PORT =", env("DATABASE_PORT"))
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['www.learnblox.org', 'api.learnblox.org', 'localhost']
 
 
 # Application definition
@@ -81,8 +81,9 @@ MIDDLEWARE = [
 ]
 
 CORS_ORIGIN_WHITELIST = [
-    'http://localhost:3000',
-    'http://localhost:5173'
+    'https://www.learnblox.org',    
+    'https://api.learnblox.org',    
+    'http://localhost:5173',    
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -183,3 +184,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    ),
+    'DEFAULT_PARSER_CLASSES': (
+        'rest_framework.parsers.JSONParser',
+    )
+}
+

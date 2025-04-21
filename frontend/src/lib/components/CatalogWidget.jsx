@@ -25,6 +25,7 @@ export default function CatalogWidget({ className }) {
           if (i % itemsPerPage === 0) newCatalog.push([]);
           newCatalog.at(-1).push(res[i]);
         }
+        if(newCatalog.length == 0) newCatalog.push([])
         setCatalog(newCatalog);
       })
       .catch((err) => setError(err));

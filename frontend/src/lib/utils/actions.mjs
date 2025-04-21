@@ -151,29 +151,12 @@ export const tryJoinClass = async (classCode, authUser) => {
 };
 
 export const fetchLB = async (authUser, input, init = {}) => {
-  const headers = new Headers(init.headers || {});
-
   if (authUser && authUser.token) {
-    headers.set('Authorization', `Token ${authUser.token}`);
+    init.headers = {...init.headers,
+                    Authorization: `Token ${authUser.token}`}
   }
 
-  const updatedInit = {
-    ...init,
-    headers,
-  };
-
-  const promise = fetch(input, updatedInit);
+  const promise = fetch(input, init);
 
   return promise;
 };
-
-export const fetchUser = async(authUser,username)=>{
-  try {
-    const res = await fetchLB(authUser,`${import.meta.env.VITE_CLOUD}/users/${username}`) 
-    const json = await res.json()
-    return json
-   }
-   catch(err) {
-     return new Error(`Failed to get User: ${err}`)    
-   }  
-}
