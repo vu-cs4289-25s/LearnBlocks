@@ -15,23 +15,12 @@ export default function CourseModulesWidget({ className, courseId }) {
       .catch((err) => setError(err));
   }, [authUser, courseId, setError]);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Completed':
-        return 'bg-blue-600';
-      case 'In Progress':
-        return 'bg-purple-600';
-      case 'Not Started':
-      default:
-        return 'bg-zinc-600';
-    }
-  };
-
   return (
     <section className={className}>
       <h1 className="mb-4 text-2xl font-bold text-white">
         Modules for Course {course.course_name}
       </h1>
+
       <ul className="flex flex-col gap-2">
         {course.modules.map((mod, key) => (
           <li
@@ -39,13 +28,15 @@ export default function CourseModulesWidget({ className, courseId }) {
             className="flex flex-col items-start justify-between gap-2 rounded bg-zinc-900 p-4 text-zinc-300 transition hover:bg-zinc-800 md:flex-row md:items-center"
           >
             <div>
-              <h2 className="text-lg font-semibold text-white">{mod.module_name}</h2>
+              <h2 className="text-lg font-semibold text-white">
+                {mod.module_name}
+              </h2>
             </div>
 
             <div className="flex items-center gap-2 self-end md:self-auto">
               <Link
                 to={`/catalog/${courseId}/module/${mod.id}`}
-                className="rounded border border-amber-400 px-3 py-1 text-xs font-medium hover:text-black hover:bg-amber-400 active:bg-amber-500"
+                className="rounded border border-amber-400 px-3 py-1 text-xs font-medium hover:bg-amber-400 hover:text-black active:bg-amber-500"
               >
                 Enter
               </Link>
