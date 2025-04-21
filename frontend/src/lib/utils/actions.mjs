@@ -80,6 +80,17 @@ export const tryGetCatalog = async (authUser) => {
   }
 };
 
+export const tryLogout = async (authUser) => {
+  try {
+   const res = await fetchLB(authUser,`${import.meta.env.VITE_CLOUD}/logout/`, {
+      method: "POST",
+    });
+    if (!res.ok) throw new Error(`${res.status}: Failed To Logout`);
+  } catch (err) {
+    return new Error(`Failed to Logout: ${err}`);
+  }
+};
+
 export const tryListCourses = async (authUser) => {
   try {
     const res = await fetchLB(authUser, `${import.meta.env.VITE_CLOUD}/users/${authUser.username}/?include=course_enrollments`);
@@ -142,3 +153,14 @@ export const fetchLB = async (authUser, input, init = {}) => {
 
   return promise;
 };
+
+export const fetchUser = async(authUser,username)=>{
+  try {
+    const res = await fetchLB(authUser,`${import.meta.env.VITE_CLOUD}/users/${username}`) 
+    const json = await res.json()
+    return json
+   }
+   catch(err) {
+     return new Error(`Failed to get User: ${err}`)    
+   }  
+}
