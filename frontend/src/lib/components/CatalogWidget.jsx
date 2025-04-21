@@ -4,6 +4,7 @@ import PageSelector from './PageSelector';
 import { tryGetCatalog } from '$lib/utils/actions.mjs';
 import { AuthUserContext, ErrorContext } from '$lib/contexts/Context';
 import courses from '$lib/courses';
+import { skeleton_course } from '$lib/utils/skeleton.mjs';
 
 /**
  * @param {object} props
@@ -12,7 +13,7 @@ import courses from '$lib/courses';
 export default function CatalogWidget({ className }) {
   const itemsPerPage = 4;
 
-  const [catalog, setCatalog] = useState([[]]);
+  const [catalog, setCatalog] = useState([[skeleton_course]]);
   const { authUser } = useContext(AuthUserContext);
   const { setError } = useContext(ErrorContext);
 
@@ -50,7 +51,7 @@ export default function CatalogWidget({ className }) {
                   <p>
                     <h2 className="font-semibold">Modules: </h2>
                     {course.modules.map((module, key) => (
-                      <text key={key}>{module + ' '}</text>
+                      <text key={key}>{module.module_name + ' / '}</text>
                     ))}
                   </p>
                 </div>

@@ -35,7 +35,7 @@ export default function CourseModulesWidget({ className, courseId }) {
 
             <div className="flex items-center gap-2 self-end md:self-auto">
               <Link
-                to={`/catalog/${courseId}/module/${mod.id}`}
+                to={`/playground/${mod.module_id}`}
                 className="rounded border border-amber-400 px-3 py-1 text-xs font-medium hover:bg-amber-400 hover:text-black active:bg-amber-500"
               >
                 Enter

@@ -113,7 +113,7 @@ export const tryGetCourse = async (authUser, courseId) => {
   }
 };
 
-export const tryGetModules = async () => {
+export const tryListModules = async () => {
   try {
     const res = await fetch(`${import.meta.env.VITE_CLOUD}/api/module/`);
     const json = await res.json();
@@ -122,6 +122,19 @@ export const tryGetModules = async () => {
     return new Error(`Failed to get Modules List: ${err}`);
   }
 };
+
+export const tryGetModule = async (authUser, module_id) => {
+  try {
+    const res = await fetchLB(authUser, `${import.meta.env.VITE_CLOUD}/modules/${module_id}/`);
+    const json = await res.json();
+    const blob_res = await fetch(json.file)
+    json.blob = await blob_res.text()
+    return json;
+  } catch (err) {
+    return new Error(`Failed to get Module : ${err}`);
+  }
+};
+
 
 export const tryJoinClass = async (classCode, authUser) => {
   try {

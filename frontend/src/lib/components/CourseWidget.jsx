@@ -1,5 +1,5 @@
 import { ErrorContext } from "$lib/contexts/Context";
-import { tryGetModules } from "$lib/utils/actions.mjs";
+import { tryListModules } from "$lib/utils/actions.mjs";
 import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -13,7 +13,7 @@ export default function CourseWidget({ course, className }) {
   const [modules, setModules] = useState([]);
   const { setError } = useContext(ErrorContext);
   useEffect(() => {
-    tryGetModules().then((res) => {
+    tryListModules().then((res) => {
       if (res instanceof Error) return setError(res.message);
       else setModules(res);
     });

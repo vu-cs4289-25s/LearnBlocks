@@ -1,20 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom';
+import  { useState, useEffect } from 'react';
 import { Button } from "@headlessui/react";
-import { BlocklyWorkspace } from 'react-blockly';
 import * as Blockly from 'blockly/core';
 import { javascriptGenerator } from 'blockly/javascript';
 import { btop, ptob } from '$lib/utils/transpile.js';
 import { TOOLBOX } from '$lib/utils/blocklyToolbox.js';
-import SyntaxHighlighter from 'react-syntax-highlighter';
-import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { BlocklyWorkspace } from 'react-blockly';
 
 const WORKSPACE_CONFIG = {
     theme: {
         'componentStyles' : {
             'workspaceBackgroundColour': '#1D1D1D',
             'toolboxBackgroundColour': '#2B2B2B',
-            'flyoutBackgroundColour': '#1D1D1D',
+            'flyoutBackgroundColour': '#18181b',
             'flyoutOpacity': 1,
             'scrollbarColour': '#797979',
             'insertionMarkerColour': '#fff',
@@ -95,13 +92,14 @@ const PythonEditor = ({ pythonLocalState, setLocalState }) => {
     return (
         <textarea 
           value={state}
-          className='resize-none w-full h-full border-2 border-black bg-gray-800'
+          className='resize-none w-full h-full border-2 border-zinc-600 bg-slate-800 '
           onInput={saveState}
         />
     );
 }
 
-export default function CodeEditor() {
+export default function CodeEditor({className}) {
+
     const [editorMode, setEditorMode] = useState('blockly');
     const [globalState, setGlobalState] = useState({});
     const [pythonLocalState, setPythonLocalState] = useState('');
@@ -136,6 +134,7 @@ export default function CodeEditor() {
 
     const runCode = () => {
         javascriptGenerator.addReservedWords('code');
+        javascriptGenerator.addReservedWords
         var code = javascriptGenerator.workspaceToCode(workspace);
         try {
             eval(code);
@@ -150,7 +149,27 @@ export default function CodeEditor() {
     }
 
     return (
-        <div className='w-3/4 h-full inline-flex'>
+        <div className={className}>
+          <div className='flex space-x-3 py-2 px-1 border-zinc-700 bg-zinc-800 mt-1 rounded-t'>
+            <Button
+              className="rounded-full bg-zinc-900 border-2 border-amber-700 px-2 py-1 text-amber-600 font-semibold hover:bg-amber-700 active:bg-amber-800 hover:text-white"
+              onClick={changeLanguage}
+            >
+              {editorMode === 'blockly' ? 'switch to python' : 'switch to blockly'}
+            </Button>
+            <Button
+              className="rounded-full bg-zinc-900 border-2 border-green-600 px-2 py-1 text-green-600 font-semibold hover:bg-green-700 active:bg-green-800 hover:text-white"
+              onClick={runCode}
+            >
+              Run Code
+            </Button>
+            <Button
+              className="rounded-full bg-zinc-900 border-2 border-zinc-600 px-2 py-1 text-zinc-600 font-semibold disabled cursor-not-allowed"
+              onClick={saveCode}
+             >
+               Save
+             </Button>
+          </div>
           <div className='w-full h-full'>
               {
                 editorMode === 'blockly' ?
@@ -160,26 +179,6 @@ export default function CodeEditor() {
                   setLocalState={updatePythonState} 
                 />
               }
-            <div className='flex space-x-3 py-2 px-1'>
-              <Button
-                className="rounded-full border border-amber-500 bg-zinc-900 p-1 shadow-black duration-100 hover:not-active:shadow text-amber-500"
-                onClick={changeLanguage}
-              >
-                {editorMode === 'blockly' ? 'switch to python' : 'switch to blockly'}
-              </Button>
-              <Button
-                className="rounded-full border border-green-400 bg-zinc-900 p-1 shadow-black duration-100 hover:not-active:shadow text-green-400"
-                onClick={runCode}
-              >
-                Run Code
-              </Button>
-              <Button
-                className="rounded-full border border-yellow-200 bg-zinc-900 p-1 shadow-black duration-100 hover:not-active:shadow text-yellow-200"
-                onClick={saveCode}
-               >
-                 Save
-               </Button>
-            </div>
           </div>
         </div>
     );

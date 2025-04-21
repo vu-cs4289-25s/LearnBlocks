@@ -1,6 +1,6 @@
 import "./index.css";
 import ReactDOM from "react-dom/client";
-import Playground from "$pages/Playground.jsx";
+import Playground from '$pages/Playground.jsx';
 import LandingPage from "$pages/Landing.jsx";
 import Layout from "$lib/components/Layout.jsx";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -41,7 +41,10 @@ ReactDOM.createRoot(root).render(
             <Route path=":courseid" element={<CourseModulesPage />} />
             <Route path=":courseid/module/:moduleid" element={<ModulePage />} />
           </Route>
-          <Route path="playground" element={<Playground />} />
+          <Route path="playground" >
+            <Route index element={<Playground/>} />
+            <Route path=":module_id" element={<Playground/>} />
+            </Route>
           <Route path="s/">
             <Route path="home" element={<StudentHomePage />} />
             <Route path="join" element={<JoinClassPage />} />

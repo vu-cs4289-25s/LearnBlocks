@@ -3,6 +3,7 @@ import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useContext, useState } from "react";
 import { Button } from "@headlessui/react";
 import { AuthUserContext, ErrorContext } from "$lib/contexts/Context";
+import { tryLogout } from "$lib/utils/actions.mjs"; 
 
 /**
  * @param {object} param0 : Props for the Navbar
@@ -14,8 +15,7 @@ const loggedOutLinks = { register: "/register", login: "/login" };
 const studentLinks = {
   home: "/s/home",
   catalog: "/catalog",
-  // courses: "/s/courses",
-  // classes: "/s/classes",
+  playground: "/playground",
 };
 const teacherLinks = {
   home: "/t/home",
