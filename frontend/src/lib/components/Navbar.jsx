@@ -2,8 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useContext, useState } from "react";
 import { Button } from "@headlessui/react";
-import { AuthUserContext, ErrorContext } from "$lib/contexts/ErrorContext";
-import { tryLogout } from "$lib/utils/actions.mjs";
+import { AuthUserContext, ErrorContext } from "$lib/contexts/Context";
 
 /**
  * @param {object} param0 : Props for the Navbar
@@ -15,8 +14,8 @@ const loggedOutLinks = { register: "/register", login: "/login" };
 const studentLinks = {
   home: "/s/home",
   catalog: "/catalog",
-  courses: "/s/courses",
-  classes: "/s/classes",
+  // courses: "/s/courses",
+  // classes: "/s/classes",
 };
 const teacherLinks = {
   home: "/t/home",
@@ -35,17 +34,12 @@ export default function Navbar({ navLinkData }) {
   const navigate = useNavigate();
 
   const { authUser, setAuthUser } = useContext(AuthUserContext);
-  const { setError } = useContext(ErrorContext);
 
   const links = getLinks(authUser);
 
-  const handleLogout = async (e) => {
+  const handleLogout = async (_) => {
     setAuthUser(null);
-    const res = await tryLogout();
     setClosed(true);
-    if (res instanceof Error) {
-      return setError(res.message);
-    }
     navigate("/");
   };
 

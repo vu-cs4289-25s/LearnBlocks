@@ -18,9 +18,7 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-print("BASE_DIR =", BASE_DIR)
 env_path = BASE_DIR / '.env'
-print("DEBUG: .env file exists:", env_path.exists())
 
 # Initialise environment variables
 env = environ.Env()
@@ -38,12 +36,14 @@ DEBUG = True
 
 # Debug: Print the database-related environment variables
 if (DEBUG and os.environ.get('RUN_MAIN') != 'true'):
+    print("BASE_DIR =", BASE_DIR)
+    print("DEBUG: .env file exists:", env_path.exists())
     print("DEBUG: Loaded environment variables from .env file:")
-    print("DATABASE_NAME =", os.environ.get("DATABASE_NAME"))
-    print("DATABASE_USER =", os.environ.get("DATABASE_USER"))
-    print("DATABASE_PASSWORD =", os.environ.get("DATABASE_PASSWORD"))
-    print("DATABASE_HOST =", os.environ.get("DATABASE_HOST"))
-    print("DATABASE_PORT =", os.environ.get("DATABASE_PORT"))
+    print("DATABASE_NAME =", env("DATABASE_NAME"))
+    print("DATABASE_USER =", env("DATABASE_USER"))
+    print("DATABASE_PASSWORD =", env("DATABASE_PASSWORD"))
+    print("DATABASE_HOST =", env("DATABASE_HOST"))
+    print("DATABASE_PORT =", env("DATABASE_PORT"))
 
 ALLOWED_HOSTS = []
 
@@ -151,20 +151,20 @@ AUTH_USER_MODEL = 'learnblocks.User'
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
+# AUTH_PASSWORD_VALIDATORS = [
+#     {
+#         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+#     },
+#     {
+#         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+#     },
+#     {
+#         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+#     },
+#     {
+#         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+#     },
+# ]
 
 
 # Internationalization

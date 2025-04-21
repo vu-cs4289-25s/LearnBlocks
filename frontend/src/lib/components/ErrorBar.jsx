@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { ErrorContext } from "$lib/contexts/ErrorContext";
+import { ErrorContext } from "$lib/contexts/Context";
 import { Button } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 

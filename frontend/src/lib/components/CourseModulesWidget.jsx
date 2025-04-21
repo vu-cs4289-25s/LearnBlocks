@@ -1,53 +1,51 @@
-import { Link, useParams } from "react-router-dom";
+import { AuthUserContext, ErrorContext } from '$lib/contexts/Context';
+import { tryGetCourse } from '$lib/utils/actions.mjs';
+import { skeleton_course } from '$lib/utils/skeleton.mjs';
+import { useContext, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
-export default function CourseModulesWidget({ className }) {
-  const { courseid } = useParams();
+export default function CourseModulesWidget({ className, courseId }) {
+  const [course, setCourse] = useState(skeleton_course);
+  const { setError } = useContext(ErrorContext);
+  const { authUser } = useContext(AuthUserContext);
 
-  const modules = [
-    { id: 0, title: "Module 1", description: "Introduction to the course", status: "Completed" },
-    { id: 1, title: "Module 2", description: "Core concepts and lessons", status: "In Progress" },
-    { id: 2, title: "Module 3", description: "Advanced topics and projects", status: "Not Started" },
-    { id: 3, title: "Module 4", description: "Final review and assessment", status: "Not Started" },
-  ];
+  useEffect(() => {
+    tryGetCourse(authUser, courseId)
+      .then((course) => setCourse(course))
+      .catch((err) => setError(err));
+  }, [authUser, courseId, setError]);
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "Completed":
-        return "bg-blue-600";
-      case "In Progress":
-        return "bg-purple-600";
-      case "Not Started":
+      case 'Completed':
+        return 'bg-blue-600';
+      case 'In Progress':
+        return 'bg-purple-600';
+      case 'Not Started':
       default:
-        return "bg-zinc-600";
+        return 'bg-zinc-600';
     }
   };
 
   return (
     <section className={className}>
-      <h1 className="text-2xl font-bold text-white mb-4">Modules for Course {courseid}</h1>
+      <h1 className="mb-4 text-2xl font-bold text-white">
+        Modules for Course {course.course_name}
+      </h1>
       <ul className="flex flex-col gap-2">
-        {modules.map((mod) => (
+        {course.modules.map((mod, key) => (
           <li
-            key={mod.id}
-            className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 rounded bg-zinc-900 p-4 text-zinc-300 hover:bg-zinc-800 transition"
+            key={key}
+            className="flex flex-col items-start justify-between gap-2 rounded bg-zinc-900 p-4 text-zinc-300 transition hover:bg-zinc-800 md:flex-row md:items-center"
           >
             <div>
-              <h2 className="text-lg font-semibold text-white">{mod.title}</h2>
-              <p className="text-sm text-zinc-400">{mod.description}</p>
+              <h2 className="text-lg font-semibold text-white">{mod.module_name}</h2>
             </div>
 
-            <div className="flex gap-2 items-center self-end md:self-auto">
-              <span
-                className={`rounded px-2 py-0.5 text-xs text-white ${getStatusColor(
-                  mod.status
-                )}`}
-              >
-                {mod.status}
-              </span>
-
+            <div className="flex items-center gap-2 self-end md:self-auto">
               <Link
-                to={`/catalog/${courseid}/module/${mod.id}`}
-                className="rounded bg-amber-400 px-3 py-1 text-xs font-medium text-black hover:bg-amber-500"
+                to={`/catalog/${courseId}/module/${mod.id}`}
+                className="rounded border border-amber-400 px-3 py-1 text-xs font-medium hover:text-black hover:bg-amber-400 active:bg-amber-500"
               >
                 Enter
               </Link>
@@ -59,7 +57,7 @@ export default function CourseModulesWidget({ className }) {
       <div className="mt-6 flex justify-center">
         <Link
           to="/catalog"
-          className="transition-color w-40 rounded-full border border-amber-400 text-center px-3 py-1 text-sm text-white shadow-sm duration-100 hover:bg-amber-400 hover:text-black hover:shadow-md active:bg-amber-500"
+          className="transition-color w-40 rounded-full border border-amber-400 px-3 py-1 text-center text-sm text-white shadow-sm duration-100 hover:bg-amber-400 hover:text-black hover:shadow-md active:bg-amber-500"
         >
           Back to Catalog
         </Link>

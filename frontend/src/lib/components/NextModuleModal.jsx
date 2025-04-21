@@ -1,14 +1,15 @@
 import { Link } from "react-router-dom";
 import CourseWidget from "./CourseWidget";
 import { useContext, useEffect, useState } from "react";
-import { tryGetCourses } from "$lib/utils/actions.mjs";
-import { ErrorContext } from "$lib/contexts/ErrorContext";
+import { tryListCourses } from "$lib/utils/actions.mjs";
+import { AuthUserContext, ErrorContext } from "$lib/contexts/Context";
 
 export default function RecentCourseModal({ className }) {
   const [course, setCourse] = useState(null);
   const { setError } = useContext(ErrorContext);
+  const { authUser } = useContext(AuthUserContext);
   useEffect(() => {
-    tryGetCourses().then((res) => {
+    tryListCourses(authUser).then((res) => {
       if (res instanceof Error) {
         return setError(res.message);
       }

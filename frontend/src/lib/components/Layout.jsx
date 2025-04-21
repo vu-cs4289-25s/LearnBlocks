@@ -1,7 +1,7 @@
 import { useState,useEffect } from "react";
 import ErrorBar from "./ErrorBar";
 import Navbar from "./Navbar";
-import { AuthUserContext, ErrorContext } from "$lib/contexts/ErrorContext";
+import { AuthUserContext, ErrorContext } from "$lib/contexts/Context";
 
 export default function Layout({ children }) {
   const [error, setError] = useState(null);

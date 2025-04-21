@@ -2,12 +2,12 @@ import { getDaysElapsed } from '$lib/utils/time.mjs';
 import { FireIcon } from '@heroicons/react/20/solid';
 
 const example = {
-  sunday: true,
+  sunday: false,
   monday: false,
   tuesday: false,
-  wednesday: true,
+  wednesday: false,
   thursday: false,
-  friday: true,
+  friday: false,
   saturday: false,
 };
 

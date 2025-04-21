@@ -44,7 +44,9 @@ ReactDOM.createRoot(root).render(
             <Route path="home" element={<StudentHomePage />} />
             <Route path="join" element={<JoinClassPage />} />
             <Route path="classes" element={<StudentHomePage />} />
-            <Route path="courses" element={<StudentCoursesPage />} />
+            <Route path="courses">
+              <Route index element={<StudentCoursesPage/>} />
+            </Route>
           </Route>
           <Route path="t/">
             <Route path="home" element={<TeacherHomePage />} />

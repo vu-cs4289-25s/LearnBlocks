@@ -416,7 +416,8 @@ class CourseEnrollView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         course_id = self.kwargs.get('course_id')
-        serializer.save(course=course_id,
+        course = Course.objects.get(course_id=course_id)
+        serializer.save(course=course,
                         user=self.request.user)
 
 
@@ -434,7 +435,8 @@ class CourseModuleListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         course_id = self.kwargs.get('course_id')
-        serializer.save(course=course_id)
+        course = Course.objects.get(course_id=course_id)
+        serializer.save(course=course)
 
 
 class CourseModuleDetailView(generics.RetrieveUpdateDestroyAPIView):

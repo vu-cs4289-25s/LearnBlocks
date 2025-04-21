@@ -1,4 +1,4 @@
-import { ErrorContext } from "$lib/contexts/ErrorContext";
+import { ErrorContext } from "$lib/contexts/Context";
 import { Field, Label, Input, Checkbox, Button } from "@headlessui/react";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import { useContext, useRef, useState } from "react";
@@ -119,8 +119,9 @@ export default function RegisterForm() {
 
         <Button
           type="submit"
-          className="rounded-full border border-amber-500 bg-zinc-900 p-1 shadow-black duration-100 hover:not-active:-translate-y-0.5 hover:not-active:shadow flex-1/2 text-amber-500"
+          className="rounded-full border border-amber-500 bg-zinc-900 p-1 shadow-black duration-100 hover:not-active::-translate-y-0.5 hover:not-active:not-disabled:shadow flex-1/2 text-amber-500 disabled:-translate-y-0 disabled:border-zinc-700 disabled:text-zinc-700 disabled:cursor-not-allowed"
           onClick={(e) => onSubmit(e, "teacher")}
+          disabled
         >
           I am a teacher
         </Button>

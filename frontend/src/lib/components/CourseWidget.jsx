@@ -1,4 +1,4 @@
-import { ErrorContext } from "$lib/contexts/ErrorContext";
+import { ErrorContext } from "$lib/contexts/Context";
 import { tryGetModules } from "$lib/utils/actions.mjs";
 import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";

@@ -58,6 +58,8 @@ class User(AbstractBaseUser, PermissionsMixin):
                                                  through='UserModuleProgress',
                                                  related_name='users',
                                                  related_query_name='user')
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
 
     objects = CustomUserManager()
 
@@ -65,19 +67,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['email', 'role']
 
     # admin panel required fields
-    @property
-    def is_staff(self):
-        return self.role == enums.UserRole.ADMIN
-
-    @property
-    def is_superuser(self):
-        return self.role == enums.UserRole.ADMIN
-
     def has_perm(self, perm, obj=None):
         return self.is_superuser
 
     def has_module_perms(self, app_label):
         return self.is_superuser
+
+    def save(self, *args, **kwargs):
+        # before saving, ensure the DB fields match your role
+        is_admin = (self.role == enums.UserRole.ADMIN)
+        self.is_staff = is_admin
+        self.is_superuser = is_admin
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'user'

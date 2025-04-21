@@ -1,6 +1,6 @@
 import { Button, Description, Field, Input, Label } from '@headlessui/react';
 import { useContext, useRef } from "react";
-import { AuthUserContext, ErrorContext } from "$lib/contexts/ErrorContext";
+import { AuthUserContext, ErrorContext } from "$lib/contexts/Context";
 import { tryJoinClass} from "$lib/utils/actions.mjs";
 
 export default function JoinClassWidget({ className }) {

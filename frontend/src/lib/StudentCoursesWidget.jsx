@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import CourseWidget from "./components/CourseWidget";
 import { useContext, useEffect, useState } from "react";
 import PageSelector from "./components/PageSelector";
-import { tryGetCourses } from "./utils/actions.mjs";
-import { ErrorContext } from "./contexts/ErrorContext";
+import { tryListCourses } from "./utils/actions.mjs";
+import { ErrorContext } from "./contexts/Context";
 import { chunkArray } from "./utils/misc.mjs";
 
 const example = {
@@ -24,7 +24,7 @@ export default function StudentCoursesWidget({ className }) {
   const { setError } = useContext(ErrorContext);
 
   useEffect(() => {
-    tryGetCourses().then((res) => {
+    tryListCourses().then((res) => {
       if (res instanceof Error) {
         setError(res.message);
         return
